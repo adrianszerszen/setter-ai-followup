@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Setter AI · FollowUP</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-dot"></span> Setter AI <small>· FollowUP</small></div>
+    <nav>
+      <button class="nav-item active" data-view="testchat">💬 Test-chat</button>
+      <button class="nav-item" data-view="rozmowy">🗂️ Rozmowy</button>
+      <button class="nav-item" data-view="instrukcje">🧠 Instrukcje</button>
+      <button class="nav-item" data-view="openery">✨ Wiadomości powitalne</button>
+      <button class="nav-item" data-view="instagram">📸 Instagram</button>
+      <button class="nav-item" data-view="analityka">📊 Analityka</button>
+      <button class="nav-item" data-view="ustawienia">⚙️ Ustawienia</button>
+    </nav>
+    <div class="sidebar-foot">
+      <span id="statusDot" class="status-dot off"></span>
+      <span id="statusText">sprawdzam…</span>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div id="keyBanner" class="banner hidden">
+      ⚠️ Brak klucza API. Wejdź w <b>Ustawienia</b> i wklej klucz (Anthropic lub OpenAI), żeby setter zaczął odpowiadać.
+    </div>
+
+    <!-- TEST-CHAT -->
+    <section class="view active" id="view-testchat">
+      <h1>Test-chat</h1>
+      <p class="muted">Rozmawiaj z setterem jako właścicielka gabinetu. To bezpieczna symulacja — nie rusza Instagrama.</p>
+
+      <div class="newconv card">
+        <div class="row">
+          <label class="radio"><input type="radio" name="startmode" value="opener" checked /> Setter zaczyna (opener)</label>
+          <label class="radio"><input type="radio" name="startmode" value="lead" /> Klient pisze pierwszy</label>
+        </div>
+        <div class="row" id="openerRow">
+          <select id="openerSelect"></select>
+        </div>
+        <div class="row hidden" id="leadRow">
+          <input type="text" id="leadFirst" placeholder="np. cześć, widziałam twój profil…" />
+        </div>
+        <div class="row">
+          <button id="newConvBtn" class="btn primary">Nowa rozmowa</button>
+          <span id="stageBadge" class="badge hidden"></span>
+        </div>
+      </div>
+
+      <div id="chatWindow" class="chat card">
+        <div class="chat-empty muted">Kliknij „Nowa rozmowa", żeby zacząć.</div>
+      </div>
+
+      <div class="chat-input card">
+        <textarea id="chatInput" rows="2" placeholder="napisz jako klientka… (Enter = wyślij)"></textarea>
+        <button id="sendBtn" class="btn primary">Wyślij</button>
+      </div>
+    </section>
+
+    <!-- ROZMOWY -->
+    <section class="view" id="view-rozmowy">
+      <h1>Rozmowy</h1>
+      <p class="muted">Wszystkie rozmowy (na razie z test-chatu). Kliknij, żeby otworzyć.</p>
+      <div id="convList" class="list"></div>
+    </section>
+
+    <!-- INSTRUKCJE -->
+    <section class="view" id="view-instrukcje">
+      <h1>Instrukcje (mózg settera)</h1>
+      <p class="muted">To prompt, którym kieruje się setter. Zmiany działają od razu w nowych odpowiedziach.</p>
+      <textarea id="instructions" class="bigtext" spellcheck="false"></textarea>
+      <div class="row"><button id="saveInstr" class="btn primary">Zapisz instrukcje</button><span id="instrSaved" class="saved hidden">zapisano ✓</span></div>
+    </section>
+
+    <!-- OPENERY -->
+    <section class="view" id="view-openery">
+      <h1>Wiadomości powitalne (openery A/B)</h1>
+      <p class="muted">Krótkie zaczepki, którymi setter zaczyna rozmowę. Tu je testujesz w test-chacie; na żywo trafią do rotacji A/B.</p>
+      <div id="openerList" class="list"></div>
+      <div class="row">
+        <input type="text" id="newOpener" placeholder="nowy opener, np. jesteś?" />
+        <button id="addOpener" class="btn">Dodaj</button>
+      </div>
+      <div class="row"><button id="saveOpeners" class="btn primary">Zapisz openery</button><span id="openSaved" class="saved hidden">zapisano ✓</span></div>
+    </section>
+
+    <!-- ANALITYKA -->
+    <section class="view" id="view-analityka">
+      <h1>Analityka</h1>
+      <p class="muted">Etapy leadów i konwersja na umówienie.</p>
+      <div id="statCards" class="stats"></div>
+      <h3>Lejek</h3>
+      <div id="funnel" class="funnel"></div>
+    </section>
+
+    <!-- INSTAGRAM -->
+    <section class="view" id="view-instagram">
+      <h1>Instagram (na żywo)</h1>
+      <p class="muted">Podłączenie prawdziwego konta przez oficjalne API Meta. Dane zdobędziesz wg przewodnika (plik PRZEWODNIK-META.md). Bez nich setter działa tylko w Test-chacie.</p>
+      <div class="card formgrid">
+        <label class="radio"><input type="checkbox" id="igEnabled" /> &nbsp;Włącz obsługę Instagrama</label>
+
+        <label>Webhook URL — wklej w Meta jako „Callback URL"</label>
+        <input type="text" id="igWebhookUrl" readonly />
+        <p class="muted small">Na żywo to musi być Twój publiczny adres https (z kroku Hosting), np. https://twojadomena.pl/webhook — nie localhost.</p>
+
+        <label>Verify Token (dowolne hasło — to samo wpiszesz w Meta)</label>
+        <div class="row"><input type="text" id="igVerifyToken" placeholder="np. followup-2026-xyz" /><button id="igGenToken" class="btn">losuj</button></div>
+
+        <label>Instagram User ID (ID konta firmowego)</label>
+        <input type="text" id="igUserId" placeholder="np. 17841400000000000" />
+
+        <label>Page Access Token <span id="igTokenState" class="muted"></span></label>
+        <input type="password" id="igPageToken" placeholder="token dostępu z Meta" />
+
+        <label>App Secret <span id="igSecretState" class="muted"></span></label>
+        <input type="password" id="igAppSecret" placeholder="sekret aplikacji z Meta (weryfikacja podpisu)" />
+
+        <label>Słowo kluczowe komentarz→DM</label>
+        <input type="text" id="igKeyword" placeholder="np. oferta" />
+
+        <div class="row"><button id="saveIg" class="btn primary">Zapisz Instagram</button><span id="igSaved" class="saved hidden">zapisano ✓</span></div>
+      </div>
+    </section>
+
+    <!-- USTAWIENIA -->
+    <section class="view" id="view-ustawienia">
+      <h1>Ustawienia</h1>
+      <div class="card formgrid">
+        <label>Dostawca AI</label>
+        <div class="row">
+          <label class="radio"><input type="radio" name="provider" value="anthropic" checked /> Anthropic (Claude)</label>
+          <label class="radio"><input type="radio" name="provider" value="openai" /> OpenAI</label>
+        </div>
+
+        <label>Klucz API <span id="keyState" class="muted"></span></label>
+        <input type="password" id="apiKey" placeholder="wklej klucz API (zostaje tylko na Twoim komputerze)" />
+
+        <label>Model</label>
+        <input type="text" id="model" placeholder="np. claude-sonnet-4-6 lub gpt-4o" />
+
+        <label>Maks. długość odpowiedzi (tokeny)</label>
+        <input type="number" id="maxTokens" min="60" max="1000" />
+
+        <label>Link do rezerwacji</label>
+        <input type="text" id="bookingLink" placeholder="followupagencja.com" />
+
+        <div class="row"><button id="saveSettings" class="btn primary">Zapisz ustawienia</button><span id="setSaved" class="saved hidden">zapisano ✓</span></div>
+      </div>
+      <p class="muted small">Klucz API: Anthropic → console.anthropic.com · OpenAI → platform.openai.com. Klucz nie jest nigdzie wysyłany poza Twój komputer i wybranego dostawcę AI.</p>
+    </section>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

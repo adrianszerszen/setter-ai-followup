@@ -1,0 +1,15 @@
+# Konfiguracja wdrożenia na Render.com (24/7 + trwały dysk na dane)
+services:
+  - type: web
+    name: setter-ai-followup
+    runtime: node
+    plan: starter            # 24/7 + trwały dysk (free usypia i kasuje dane)
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
