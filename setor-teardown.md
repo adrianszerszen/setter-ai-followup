@@ -57,3 +57,20 @@ Stack Setora: Next.js + shadcn/ui (Tailwind + Radix) + Inter + paleta oklch. Aut
 - Komentarze i DM · Automatyzacje (kreator) · Zimny zasięg · Tryb Recovery
 - Analityka (metryki: Konwersje, Kontakty, Obserwujący, Wizyty profilu; widżety)
 - CRM · Konfiguracja (Produkty, Waluta)
+
+## 2) MODEL AI — jak wołają model
+- Generacja AI = **POST na app.setor.ai/.../testing → Next.js Server Action**. Model wołany SERVER-SIDE, ukryty przed klientem (nie da się odczytać z przeglądarki — celowo). JS enumerujący blokowany przez guard.
+- Analityka: self-hosted a1.setor.ai (ver 1.373.5).
+- Wniosek: konkretnego modelu nie potwierdzę bez serwera. Z zachowania (naturalny PL, trzymanie złożonych instrukcji, klasyfikacja etapów Warm/itd.) — top model klasy Claude / GPT-4o / Gemini.
+- NASZA PRZEWAGA: u nas model jest jawny i wymienny (Claude sonnet-4-6 teraz; przełączalny na OpenAI). Brak vendor lock-in.
+
+## 3) AUTOMATYZACJE (Lead Gen)
+- **Automation Flows** = wizualny node-graph (ManyChat-style): Trigger (komentarz pod postem/rolką / słowo kluczowe) → Akcja (Welcome Button z lead magnetem + przycisk) → Warunek (Followers Check: obserwuje/nie) → lead magnet / follow-up. Import/Export jako JSON. Statystyki entered/completed.
+- Wiadomości Powitalne A/B, Komentarz & DM, Cold Outreach, Tryb Recovery.
+- W ROZMOWIE (silnik runtime): AI trzyma **streszczenie/pamięć kontaktu** + **auto-planuje follow-upy** ("3 Follow-upy" z uzasadnieniem). Klasyfikacja etapu (Warm).
+- Gamifikacja (LVL/XP w testach), Historia Live (wersjonowanie), Zapisz/Pobierz z Live, import kontaktu z CRM do testu, licznik kontekstu (0/30k).
+
+## 4) CO ICH RÓŻNI / NASZ PLAN
+Ich przewagi: realna integracja Meta na żywo; wizualny kreator flow; dojrzała analityka; pamięć kontaktu + auto-follow-up (runtime); A/B na żywo; trening modelu.
+Nasze przewagi: jawny/wymienny model; pełna własność (bez $1000/mc); persona z realną treścią; zgodność (bez ryzykownego cold-outreachu — click-to-DM).
+Plan (priorytet = skuteczność rozmów/sprzedaży): (1) pamięć kontaktu, (2) auto-follow-upy z uzasadnieniem, (3) A/B na żywo z licznikiem zwycięzcy, (4) kreator Automatyzacji + Import/Export, (5) analityka jak u nich, (6) lead magnety po słowach kluczowych.

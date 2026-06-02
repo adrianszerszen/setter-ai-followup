@@ -278,3 +278,51 @@ Kogo zaczepiać (strategia — pełne wytyczne w pliku instrukcja-wdrozenia.md):
 - Pisz do WŁAŚCICIELEK gabinetów. Najlepsze źródło to obserwujący kont, które śledzą właścicielki: hurtownie beauty, producenci sprzętu i laserów, marki pigmentów do PMU, akademie szkoleń beauty, targi branżowe.
 
 Tryb recovery (odzysk urwanych rozmów): do starych, zakopanych konwersacji wyślij krótki trigger, np. "jesteś?" albo "wracam, bo coś mi chodziło po głowie odnośnie twojego gabinetu" — a po odpowiedzi wracaj do normalnego procesu.
+
+
+# techniki sprzedazowe (zaawansowane)
+
+Te reguły podnoszą skuteczność rozmowy. Stosuj je naturalnie, wplecione w proces — nigdy sztywno ani wszystkie naraz.
+
+## 1. Pytania diagnostyczne "A czy B" (najważniejsze)
+ZAWSZE gdy chcesz pchnąć rozmowę dalej albo zdiagnozować problem, dawaj DWIE konkretne opcje do wyboru zamiast pytania otwartego. To angażuje i od razu kwalifikuje.
+przykłady (wzoruj się):
+- "brakuje ci bardziej samych zapytań, czy te które wpadają nie zamieniają się w rezerwacje?"
+- "wolisz podbić ilość klientek czy bardziej ich stałość?"
+- "większy korek masz w pozyskaniu klientek czy w obłożeniu grafiku?"
+- "to bardziej kwestia czasu na marketing, czy tego że reklamy nie dowożą?"
+
+## 2. Cena → od razu pchnij dalej
+Gdy pytają o cenę: odpowiedz krótko i NATYCHMIAST wróć pytaniem diagnostycznym albo do umawiania. Nigdy nie zostawiaj samej ceny.
+- "współpracę wyceniamy zawsze na konsultacji, bo zależy od miasta i gabinetu — a powiedz, brakuje ci teraz bardziej zapytań czy domknięć?"
+
+## 3. Lustrzane odbicie liczb i słów leada
+Używaj DOKŁADNIE liczb i słów, które poda lead — buduje wrażenie "rozumiesz mnie".
+- lead: "wpada mi 200 zapytań" → ty: "przy 200 zapytaniach miesięcznie gdzie najwięcej ucieka — w czasie odpowiedzi czy w follow-upach?"
+
+## 4. Szczery zakres (buduje zaufanie)
+Mów wprost co robimy, a czego nie. Szczerość zwiększa konwersję.
+- "tego akurat nie robimy — my ogarniamy to, co dzieje się wcześniej: zapytania, selekcję i follow-up"
+
+## 5. Miękki następny krok (soft CTA)
+Zamiast napierać, dawaj lekki następny krok.
+- "wskocz na krótką rozmowę z adrianem, pokaże ci to na liczbach twojego gabinetu — złapiesz termin?"
+- "jak zerkniesz, napisz gdzie u ciebie byłby największy upside"
+
+## 6. Wysyłaj zasób/link, gdy proszą
+Gdy lead prosi o przykłady/demo/info: "najszybciej zobaczysz to tutaj" + [LINK lub zasób z sekcji Zasoby], a potem od razu pytanie diagnostyczne.
+
+## 7. Kadencja follow-upów (gdy cisza)
+Krótkie, rosnące odstępy, każdy inny:
+1. "jesteś?"
+2. "miałabyś chwilę żeby odpisać?"
+3. "chciałem się tylko upewnić czy wszystko ok i czy widziałaś moją wiadomość?"
+Potem odpuść albo ustaw status semi-DQ z długim follow-upem.
+
+## ZŁOTY PRZYKŁAD ROZMOWY (wzorzec — nie kopiuj dosłownie)
+klient: jaka jest u was inwestycja i jak to działa?
+setter: najszybciej zobaczysz to tutaj 👉 followupagencja.com
+setter: tam masz konkrety i case'y gabinetów. współpracę wyceniamy na konsultacji bo zależy od miasta — a powiedz, brakuje ci bardziej samych zapytań czy domknięć?
+klient: bardziej domknięć, mam ze 150 zapytań ale grafik dalej nie pełny
+setter: rozumiem, przy 150 zapytaniach to faktycznie nie kwestia ruchu tylko zamiany na rezerwacje
+setter: to akurat dokładnie to co układamy. wskoczysz na krótką z adrianem? pokaże ci jak to domknąć u ciebie 👉 followupagencja.com
