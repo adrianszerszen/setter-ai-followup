@@ -711,62 +711,9 @@
 
 <!-- SAMOUCZEK (modal) -->
 <div id="tutorialOverlay" class="overlay hidden">
-  <div class="modal">
-    <div class="modal-head">
-      <h2>📘 Samouczek: jak pisać skuteczne instrukcje</h2>
-      <button id="closeTutorial" class="help-btn">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="muted">Najważniejsze zasady dostrajania settera. Wracaj tu, gdy coś „się nie słucha”.</p>
-
-      <h3>Zasady pisania promptów</h3>
-      <ul>
-        <li><b>Najpierw zobacz, potem zmieniaj.</b> Zrób 1 pełną rozmowę na czysto (bez instrukcji) i zanotuj 2-3 rzeczy do poprawy. System już działa w 70-80% dobrze.</li>
-        <li><b>Pisz jak do inteligentnego 12-latka:</b> prosto i precyzyjnie. „Jeżeli X, to Y, z wyjątkiem A i B”. Krótka reguła > długa instrukcja.</li>
-        <li><b>Przykłady to złoto:</b> min. 12 konkretnych przykładów wiadomości. Źle: „pisz krótko”. Dobrze: „jeśli rozmówca pisze 10 słów, odpisz maks. ~1,5× tyle”.</li>
-        <li><b>Wymuszaj tam gdzie trzeba:</b> „zawsze”, „musisz”, „zasada krytyczna”, „nigdy”. Ale nie wszędzie, bo nadmiar tworzy sprzeczności i setter dziwaczeje.</li>
-        <li><b>Sztywno vs luźno:</b> „wyślij dokładnie jeden do jednego któryś z przykładów” = sztywno; bez tego setter sam komponuje z przykładów.</li>
-        <li><b>Porządek przez nagłówki #</b> (# styl, # początek rozmowy, # kwalifikacja…). Pracuj od góry do dołu. Nie doklejaj reguł na końcu („Frankenstein”).</li>
-        <li><b>Każdą zmianę testuj 3×</b> w różnych rolach: pozytywna, sceptyczna, agresywna.</li>
-        <li><b>Nie zlecaj pisania instrukcji AI.</b> AI używaj do diagnozy (poniżej), nie do pisania. Unikaj „matematyki” w promptach.</li>
-        <li><b>Mindset:</b> gdy setter się nie słucha, to prawie zawsze nieprecyzyjna instrukcja, nie wada systemu. AI zgaduje, więc brak precyzji = halucynacje.</li>
-      </ul>
-
-      <h3>3 prompty diagnostyczne (wklej do ChatGPT / Gemini w trybie myślenia)</h3>
-      <p class="muted">Najpierw wklej swoje instrukcje, potem jeden z promptów.</p>
-
-      <div class="copybox">
-        <div class="copyhead"><b>1) Diagnoza konkretnego zachowania</b><button class="btn sm copybtn" data-copy="p1">kopiuj</button></div>
-        <pre id="p1">Poniżej znajdują się instrukcje do mojego agenta AI, który obsługuje moje DM-y na Instagramie. Nie jestem w stanie zrozumieć, dlaczego [OPISZ ZACHOWANIE, np. zawsze ustawia 6 follow-upów]. Przeskanuj te instrukcje i pokaż mi dokładnie wszystkie fragmenty, które mogą to powodować.</pre>
-      </div>
-
-      <div class="copybox">
-        <div class="copyhead"><b>2) Znajdź fragmenty zbyt mało precyzyjne</b><button class="btn sm copybtn" data-copy="p2">kopiuj</button></div>
-        <pre id="p2">Przejrzyj moje instrukcje do agenta AI, który obsługuje moje DM-y na Instagramie i umawia kwalifikowane rozmowy sprzedażowe. Zakładając, że model jest inteligentny i przeszkolony pod sprzedaż, znajdź TYLKO te fragmenty, które naprawdę nie są wystarczająco precyzyjne. Cytowane fragmenty umieść w wydzielonych oknach kodu, a swoje komentarze poza oknem kodu.</pre>
-      </div>
-
-      <div class="copybox">
-        <div class="copyhead"><b>3) Znajdź sprzeczności logiczne</b><button class="btn sm copybtn" data-copy="p3">kopiuj</button></div>
-        <pre id="p3">Przeskanuj moje instrukcje do agenta AI obsługującego DM-y na Instagramie i znajdź wszystkie sprzeczności logiczne oraz miejsca, gdzie jedna reguła przeczy drugiej. Pokaż pary sprzecznych fragmentów w oknach kodu, a wyjaśnienie poza oknem kodu.</pre>
-      </div>
-
-      <div class="copybox">
-        <div class="copyhead"><b>4) Uporządkuj i sformatuj (na koniec)</b><button class="btn sm copybtn" data-copy="p4">kopiuj</button></div>
-        <pre id="p4">Poniżej wklejam instrukcje mojego agenta AI do DM-ów na Instagramie. NIE zmieniaj żadnego słowa tam, gdzie nie jest to absolutnie konieczne. Poukładaj je w logiczną kolejność, zachowując podział na sekcje, popraw ortografię i interpunkcję, usuń gwiazdki i znaki markdown, i sformatuj tak, żeby były przejrzyste i łatwe do edycji. Zwróć wynik w jednym oknie kodu do skopiowania.</pre>
-      </div>
-
-      <h3>Przed startem na żywo (kolejność)</h3>
-      <ol>
-        <li>Znajdź sprzeczności (prompt 3) i popraw kłócące się reguły. W dłuższych instrukcjach ZAWSZE się pojawiają.</li>
-        <li>Znajdź niedoprecyzowane fragmenty (prompt 2) i doprecyzuj je.</li>
-        <li>Uporządkuj i sformatuj (prompt 4), usuń gwiazdki.</li>
-        <li>Kliknij „Zapisz na Live”, potem włącz settera (u nas: podłączenie Instagrama).</li>
-        <li>Przez 14 dni: 45 min dziennie obserwuj prawdziwe rozmowy i nanoś szlify.</li>
-      </ol>
-
-      <h3>Gamifikacja</h3>
-      <p>Celuj w <b>poziom 12</b> (zwykle 2-3 h testowania) = instrukcje zwykle gotowe na żywo. Potem 14 dni obserwacji prawdziwych rozmów (45 min/dzień).</p>
-    </div>
+  <div class="modal wiz">
+    <div class="modal-head" style="border:0;padding-bottom:0;justify-content:flex-end"><button id="closeTutorial" class="help-btn">✕</button></div>
+    <div class="modal-body" id="wizBody"></div>
   </div>
 </div>
 

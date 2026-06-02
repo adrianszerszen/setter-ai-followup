@@ -34,16 +34,41 @@ $$('.nav-parent[data-toggle]').forEach(b => b.addEventListener('click', () => {
 // delegacja: każdy element z data-go przełącza widok (skróty na Panelu, linki w Akademii)
 document.addEventListener('click', e => { const t = e.target.closest('[data-go]'); if (t) { e.preventDefault(); showView(t.dataset.go); } });
 
-// ---------- Samouczek (modal) ----------
-if ($('#openTutorial')) $('#openTutorial').addEventListener('click', () => $('#tutorialOverlay').classList.remove('hidden'));
+// ---------- Samouczek (kreator slajdów, jak w Setorze) ----------
+let wizStep = 0;
+const WIZ_PROMPTS = `
+  <div class="copybox"><div class="copyhead"><b>1) Diagnoza zachowania</b><button class="btn sm copybtn" data-copy="p1">kopiuj</button></div><pre id="p1">Poniżej znajdują się instrukcje do mojego agenta AI obsługującego DM-y na Instagramie. Nie rozumiem, dlaczego [OPISZ ZACHOWANIE]. Przeskanuj i pokaż wszystkie fragmenty, które mogą to powodować.</pre></div>
+  <div class="copybox"><div class="copyhead"><b>2) Za mało precyzyjne fragmenty</b><button class="btn sm copybtn" data-copy="p2">kopiuj</button></div><pre id="p2">Przejrzyj moje instrukcje agenta AI do DM-ów. Zakładając, że model jest inteligentny i przeszkolony pod sprzedaż, znajdź TYLKO fragmenty naprawdę zbyt mało precyzyjne. Cytaty w oknach kodu, komentarze poza nimi.</pre></div>
+  <div class="copybox"><div class="copyhead"><b>3) Sprzeczności logiczne</b><button class="btn sm copybtn" data-copy="p3">kopiuj</button></div><pre id="p3">Przeskanuj moje instrukcje agenta AI i znajdź wszystkie sprzeczności oraz reguły, które przeczą sobie nawzajem. Pary sprzecznych fragmentów w oknach kodu, wyjaśnienie poza nimi.</pre></div>
+  <div class="copybox"><div class="copyhead"><b>4) Uporządkuj i sformatuj</b><button class="btn sm copybtn" data-copy="p4">kopiuj</button></div><pre id="p4">Poukładaj moje instrukcje w logiczną kolejność, zachowaj sekcje, popraw ortografię i interpunkcję, usuń gwiazdki i markdown. Nie zmieniaj słów tam, gdzie nie trzeba. Zwróć w jednym oknie kodu.</pre></div>`;
+const WIZ_SLIDES = [
+  { label: 'Obserwuj. Oceniaj. Działaj.', title: 'Jak dostrajać swojego settera?', body: '<p>Zanim cokolwiek zmienisz, zobacz jak setter działa <b>„na czysto"</b>, żeby ocenić co należy dostroić.</p><p class="mono">zobacz → oceń → dostrajaj</p><p>Dopiero gdy zobaczysz co Ci się nie podoba, <b>zaczynasz dostrajanie</b>.</p>', ex: { l: 'PRZYKŁAD', t: 'Jeżeli ktoś napisze „START" → zrób obserwację o profilu i zapytaj o aktualny cel.' } },
+  { label: 'Ostrożnie. Zasady logiki obowiązują.', title: 'Pisz jak do inteligentnego 12-latka', body: '<p>Określaj działania prosto i precyzyjnie, stosując poprawne zasady logiczne:</p><p class="mono">„jeżeli x to y" → „z wyjątkiem a oraz b"</p><p><b>Krótsza reguła</b> działa lepiej niż długa instrukcja. Im więcej sztywnych reguł, tym większe szanse na sprzeczności logiczne.</p><p>Dlatego uważaj na <b>sprzeczności</b> między zasadami.</p>', ex: { l: 'PRZYKŁAD', t: 'Gdy rozmówca jest zaangażowany w rozmowę, zapytaj o obecne wyzwania. Potem zapytaj czego próbował wcześniej, żeby je rozwiązać.' } },
+  { label: 'Styl pisania', title: 'Określ swój styl pisania', body: '<p>Styl pisania to <b>osobowość</b> Twojego settera.</p><p class="mono">ton / energia / sposób argumentacji</p><p>Spójny styl buduje zaufanie i rozpoznawalność.</p>', ex: { l: 'PRZYKŁAD', t: 'Krótkie zdania, wysoka pewność siebie, pozytywnie i motywująco.\nZawsze skup się na obecnych liczbach w biznesie rozmówcy i celach na następny rok.' } },
+  { label: 'Wyjątki. Granice. Zakończenia.', title: 'Ustaw wyjątki i jasne granice', body: '<p>Na końcu dodaj <b>wyjątki</b>:</p><p class="mono">klient / kontakt prywatny / partner / konkurencja</p><p>Ustal też, kiedy setter ma grzecznie <b>zakończyć rozmowę</b> oraz co robić, gdy pisze klient.</p>', ex: { l: 'PRZYKŁAD', t: 'Jeżeli to klient / kontakt prywatny / partner → nie zadawaj pytań, poinformuj że obsługujesz skrzynkę i poproś o kontakt innym kanałem.' } },
+  { label: 'Pośpiech. Sceptycyzm. AI?', title: 'Testuj trudne warianty', body: '<p>Tę samą zmianę przetestuj w <b>trudnych wariantach</b>:</p><p class="mono">otwarty / sceptyczny / testujący czy to AI</p><p>To najszybciej pokaże, czy reguła jest <b>solidna</b>.</p>', ex: { l: 'PRZYKŁAD', t: 'Jeżeli ktoś pyta „po co piszesz?" → „piszemy do obserwujących, bo prowadzimy bezpłatne konsultacje" i zapytaj czy możesz zadać pytanie.' } },
+  { label: 'Jedna zmiana. Trzy testy. Potem kolejna.', title: 'Jedna zmiana = trzy testy', body: '<p>Wprowadź <b>jedną nową zasadę</b> lub instrukcję i sprawdź ją w <b>trzech testach</b>.</p><p class="mono">1 zmiana → 3 testy → następna zmiana</p><p>Dopiero gdy widzisz, że działa jak trzeba, bierz się za <b>kolejną kluczową zmianę</b>.</p>', ex: { l: 'PRZYKŁAD', t: 'Jeżeli ktoś pyta o cenę → podaj widełki i powiedz, że najpierw musisz poznać sytuację.' } },
+  { label: 'Diagnoza z AI', title: 'Gdy coś się nie słucha, użyj AI', body: '<p>Nie zlecaj pisania instrukcji AI. Używaj go do <b>diagnozy</b>. Wklej instrukcje do ChatGPT/Gemini i jeden z promptów:</p>', prompts: true },
+  { label: 'Na koniec', title: 'Rekomendacja', body: '<p>Zaplanuj teraz <b>2×90 minut</b> na dostrojenie settera i jak najszybciej dojdź do <b>poziomu 10</b> w narzędziu testowym. Na poziomie 10 setter powinien być dobrze przygotowany na pierwszy tydzień testów na żywo.</p><p>W pierwszym tygodniu testów na żywo zaplanuj <b>90 minut dziennie</b> na obserwację prawdziwych rozmów, wprowadzanie i testowanie zmian. Tak doprowadzisz go do <b>stabilnego, precyzyjnego działania</b>.</p><p class="muted">Miłej zabawy. Jeśli napotkasz problemy, daj znać, pomożemy.</p>', ex: { l: 'WYZWANIE', t: 'Osiągnąć poziom 10 w ciągu 3 godzin testowania w następne 24 godziny.' } },
+];
+function renderWiz(i) {
+  wizStep = Math.max(0, Math.min(WIZ_SLIDES.length - 1, i));
+  const s = WIZ_SLIDES[wizStep];
+  const last = wizStep === WIZ_SLIDES.length - 1;
+  const dots = WIZ_SLIDES.map((_, k) => `<span class="wiz-d ${k === wizStep ? 'on' : ''}"></span>`).join('');
+  const ex = s.ex ? `<div class="wiz-ex"><div class="ex-l">${esc(s.ex.l)}</div><div class="ex-t">${esc(s.ex.t)}</div></div>` : '';
+  const prompts = s.prompts ? WIZ_PROMPTS : '';
+  const back = wizStep === 0 ? '<span></span>' : '<button class="wiz-back">‹ Wstecz</button>';
+  $('#wizBody').innerHTML = `<div class="wiz-label">${esc(s.label)}</div><div class="wiz-title">${esc(s.title)}</div><div class="wiz-text">${s.body}${prompts}${ex}</div><div class="wiz-foot">${back}<div class="wiz-dots">${dots}</div><button class="wiz-next">${last ? 'Rozpocznij' : 'Dalej ›'}</button></div>`;
+  const b = $('#wizBody .wiz-back'); if (b) b.addEventListener('click', () => renderWiz(wizStep - 1));
+  $('#wizBody .wiz-next').addEventListener('click', () => { if (last) { $('#tutorialOverlay').classList.add('hidden'); showView('testchat'); } else renderWiz(wizStep + 1); });
+}
+function openWiz() { renderWiz(0); const o = $('#tutorialOverlay'); if (o) o.classList.remove('hidden'); }
+if ($('#openTutorial')) $('#openTutorial').addEventListener('click', openWiz);
 if ($('#closeTutorial')) $('#closeTutorial').addEventListener('click', () => $('#tutorialOverlay').classList.add('hidden'));
 if ($('#tutorialOverlay')) $('#tutorialOverlay').addEventListener('click', e => { if (e.target.id === 'tutorialOverlay') e.currentTarget.classList.add('hidden'); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = $('#tutorialOverlay'); if (o) o.classList.add('hidden'); } });
-$$('.copybtn').forEach(b => b.addEventListener('click', async () => {
-  const el = $('#' + b.dataset.copy); if (!el) return;
-  try { await navigator.clipboard.writeText(el.textContent); const o = b.textContent; b.textContent = 'skopiowano ✓'; setTimeout(() => b.textContent = o, 1500); }
-  catch { const r = document.createRange(); r.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); }
-}));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const a = $('#tutorialOverlay'); if (a) a.classList.add('hidden'); const c = $('#connectOverlay'); if (c) c.classList.add('hidden'); } });
+document.addEventListener('click', async e => { const b = e.target.closest('.copybtn'); if (!b) return; const el = $('#' + b.dataset.copy); if (!el) return; try { await navigator.clipboard.writeText(el.textContent); const o = b.textContent; b.textContent = 'skopiowano ✓'; setTimeout(() => b.textContent = o, 1500); } catch {} });
 
 // tabs (Osoba)
 $$('#osobaTabs .tab').forEach(t => t.addEventListener('click', () => {
@@ -254,7 +279,7 @@ function updateRecLabels() { if ($('#rMinL')) $('#rMinL').textContent = $('#rMin
 $$('#rMin, #rMax').forEach(el => el.addEventListener('input', updateRecLabels));
 
 // ---------- AI Helper + dzwonek ----------
-if ($('#aiHelperBtn')) $('#aiHelperBtn').addEventListener('click', () => { const o = $('#tutorialOverlay'); if (o) o.classList.remove('hidden'); });
+if ($('#aiHelperBtn')) $('#aiHelperBtn').addEventListener('click', openWiz);
 if ($('#bellBtn')) $('#bellBtn').addEventListener('click', () => alert('Brak nowych powiadomień 🙂'));
 
 // ---------- karty połączeń (Integracje) + zakładki ----------

@@ -370,3 +370,24 @@ ul.tight li{margin:4px 0}
 .sdot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
 .stage-row .sv{color:var(--muted)}
 .stage-row .sv b{color:var(--text);margin-left:8px}
+
+/* Samouczek, kreator slajdów (jak w Setorze) */
+.modal.wiz{max-width:680px}
+.wiz-label{display:flex;align-items:center;justify-content:center;gap:9px;color:var(--muted);font-size:13.5px;margin:0 0 16px}
+.wiz-label:before{content:"";width:8px;height:8px;border-radius:50%;background:#5b9dff;box-shadow:0 0 8px #5b9dff;flex:none}
+.wiz-title{font-size:30px;font-weight:700;text-align:center;margin:0 0 18px;letter-spacing:-.01em;line-height:1.15}
+.wiz-text{text-align:center;color:var(--text);line-height:1.7;font-size:15px}
+.wiz-text p{margin:12px 0}
+.wiz-text .mono{font-family:ui-monospace,Menlo,monospace}
+.wiz-text ol{text-align:left;line-height:1.8;padding-left:22px;margin:8px 0}
+.wiz-ex{background:oklch(0.26 0.06 258);border:1px solid oklch(0.42 0.1 258);border-radius:14px;padding:16px 20px;margin:22px 0 0;text-align:left}
+.wiz-ex .ex-l{color:#7fb0ff;font-size:11px;letter-spacing:1.2px;font-weight:700;margin-bottom:8px}
+.wiz-ex .ex-t{font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.6;color:#dbe6ff;white-space:pre-line}
+.wiz-foot{display:flex;align-items:center;justify-content:space-between;margin-top:26px}
+.wiz-back{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:13.5px}
+.wiz-back:hover{color:var(--text)}
+.wiz-dots{display:flex;gap:6px}
+.wiz-d{width:6px;height:6px;border-radius:50%;background:var(--panel3)}
+.wiz-d.on{background:#5b9dff}
+.wiz-next{background:var(--panel2);border:1px solid var(--ring);color:var(--text);border-radius:10px;padding:9px 18px;cursor:pointer;font-weight:600;font-size:13.5px}
+.wiz-next:hover{background:var(--panel3)}
