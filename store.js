@@ -53,6 +53,8 @@ function defaultSettings() {
       igUserId: '',
       igUsername: '',
       targetIgUsername: 'adrian.szerszen',
+      targetIgUserId: '17841410972987951',
+      availableAccounts: [],
       appSecret: '',
       appId: '1183818090575252',
       configId: '1175999537986941',
@@ -186,7 +188,7 @@ export function getSettings() { return load().settings; }
 
 export function getInstagram() {
   const s = load().settings;
-  if (!s.instagram) s.instagram = { enabled: false, verifyToken: '', pageAccessToken: '', igUserId: '', igUsername: '', targetIgUsername: 'adrian.szerszen', appSecret: '', appId: '1183818090575252', configId: '1175999537986941', commentKeyword: 'oferta' };
+  if (!s.instagram) s.instagram = { enabled: false, verifyToken: '', pageAccessToken: '', igUserId: '', igUsername: '', targetIgUsername: 'adrian.szerszen', targetIgUserId: '17841410972987951', availableAccounts: [], appSecret: '', appId: '1183818090575252', configId: '1175999537986941', commentKeyword: 'oferta' };
   return s.instagram;
 }
 
@@ -274,7 +276,7 @@ export function updateSettings(patch) {
   if (patch.clearApiKey === true) s.apiKey = '';
   if (patch.instagram && typeof patch.instagram === 'object') {
     if (!s.instagram) s.instagram = {};
-    for (const k of ['enabled', 'verifyToken', 'igUserId', 'igUsername', 'targetIgUsername', 'commentKeyword', 'appId', 'configId']) {
+    for (const k of ['enabled', 'verifyToken', 'igUserId', 'igUsername', 'targetIgUsername', 'targetIgUserId', 'availableAccounts', 'commentKeyword', 'appId', 'configId']) {
       if (patch.instagram[k] !== undefined) s.instagram[k] = patch.instagram[k];
     }
     if (typeof patch.instagram.pageAccessToken === 'string' && patch.instagram.pageAccessToken.trim() !== '') s.instagram.pageAccessToken = patch.instagram.pageAccessToken.trim();

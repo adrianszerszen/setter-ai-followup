@@ -40,6 +40,8 @@ app.get('/api/settings', (req, res) => {
       igUserId: (s.instagram && s.instagram.igUserId) || '',
       igUsername: (s.instagram && s.instagram.igUsername) || '',
       targetIgUsername: (s.instagram && s.instagram.targetIgUsername) || '',
+      targetIgUserId: (s.instagram && s.instagram.targetIgUserId) || '',
+      availableAccounts: (s.instagram && s.instagram.availableAccounts) || [],
       verifyToken: (s.instagram && s.instagram.verifyToken) || '',
       commentKeyword: (s.instagram && s.instagram.commentKeyword) || '',
       appId: (s.instagram && s.instagram.appId) || '',
@@ -219,11 +221,16 @@ app.get('/auth/facebook/callback', async (req, res) => {
     if (!pages.length) return res.redirect('/?ig=nopage');
     // Wybierz konkretne konto IG (domyślnie adrian.szerszen), a nie pierwsze z brzegu —
     // u kogoś z wieloma podpiętymi kontami "pierwsze z brzegu" bywa cudze (np. klienta).
-    const target = (ig.targetIgUsername || '').toLowerCase().trim();
-    let page = target ? pages.find(x => ((x.instagram_business_account.username || '').toLowerCase() === target)) : null;
+    // Najpewniejsze jest dopasowanie po ID (zawsze wraca z API); nazwa jako zapas.
+    const targetId = (ig.targetIgUserId || '').trim();
+    const targetName = (ig.targetIgUsername || '').toLowerCase().trim();
+    let page = null;
+    if (targetId) page = pages.find(x => String(x.instagram_business_account.id) === targetId);
+    if (!page && targetName) page = pages.find(x => ((x.instagram_business_account.username || '').toLowerCase() === targetName));
     if (!page) page = pages[0];
     const iba = page.instagram_business_account;
-    store.updateSettings({ instagram: { enabled: true, igUserId: iba.id, igUsername: iba.username || '', pageAccessToken: page.access_token } });
+    const availableAccounts = pages.map(x => ({ name: x.name, igId: String(x.instagram_business_account.id), igUser: x.instagram_business_account.username || '' }));
+    store.updateSettings({ instagram: { enabled: true, igUserId: String(iba.id), igUsername: iba.username || '', pageAccessToken: page.access_token, availableAccounts } });
     res.redirect('/?ig=connected');
   } catch (e) { res.redirect('/?ig=error'); }
 });
