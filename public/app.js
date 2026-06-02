@@ -266,6 +266,7 @@ function renderConnCards(ig) {
 }
 $$('#setTabs .tab').forEach(t => t.addEventListener('click', () => $$('#setTabs .tab').forEach(x => x.classList.toggle('active', x === t))));
 $$('#dtabs .dtab').forEach(t => t.addEventListener('click', () => $$('#dtabs .dtab').forEach(x => x.classList.toggle('active', x === t))));
+$$('#pnlTabs .dtab').forEach(t => t.addEventListener('click', () => $$('#pnlTabs .dtab').forEach(x => x.classList.toggle('active', x === t))));
 
 // ---------- Ustawienia Konta ----------
 async function loadKonto() {
@@ -442,7 +443,39 @@ function convChartHtml(series) {
   const max = Math.max(1, ...series.map(s => s.rate || 0));
   return `<div class="chart">${series.map(s => `<div class="chart-col" title="${s.day}: ${s.rate}% konwersji (${s.conv}/${s.count})"><div class="chart-bar conv" style="height:${Math.max(2, Math.round((s.rate || 0) / max * 100))}%"></div><div class="chart-x">${s.day.slice(0, 2)}</div></div>`).join('')}</div>`;
 }
-async function loadPanel() { const a = await api('/analytics'); $('#panelStats').innerHTML = statCardsHtml(a); }
+// sparkline (gradientowe karty jak w Setorze)
+const SPARK_PATHS = [
+  'M0,40 C18,38 30,20 48,24 C66,28 80,8 100,14',
+  'M0,30 C20,32 34,12 50,18 C68,25 84,30 100,10',
+  'M0,36 C16,20 32,26 50,16 C70,6 86,22 100,12',
+  'M0,28 C18,30 30,34 50,22 C70,10 82,16 100,20',
+];
+function spark(color, i) {
+  const p = SPARK_PATHS[i % SPARK_PATHS.length];
+  return `<svg class="spark" viewBox="0 0 100 48" preserveAspectRatio="none"><path class="line" d="${p}" style="stroke:${color};filter:drop-shadow(0 0 6px ${color}88)"/></svg>`;
+}
+function mcard(label, value, color, i, sub) {
+  return `<div class="mcard"><div class="mc-l">${esc(label)}</div><div class="mc-n">${value}<small>${sub || '—'}</small></div><div class="mc-c">vs poprz. 30d</div>${spark(color, i)}</div>`;
+}
+async function loadPanel() {
+  const a = await api('/analytics');
+  if ($('#pnlMetrics')) $('#pnlMetrics').innerHTML =
+    mcard('Konwersje', a.konwersje ?? 0, '#3ecf8e', 0)
+    + mcard('Kontakty', a.kontakty ?? 0, '#22d3ee', 1)
+    + mcard('Obserwujący', 'b/d', '#8b7bff', 2, 'wymaga IG')
+    + mcard('Wizyty profilu', 'b/d', '#ff9d4d', 3, 'wymaga IG');
+  const conv = a.convFromResponded ?? a.conversion ?? 0;
+  if ($('#pnlGauge')) $('#pnlGauge').style.setProperty('--g', Math.min(360, Math.round((conv / 100) * 360)) + 'deg');
+  if ($('#pnlGaugeN')) $('#pnlGaugeN').textContent = a.konwersje ?? 0;
+  if ($('#pnlConvN')) $('#pnlConvN').textContent = a.konwersje ?? 0;
+  if ($('#pnlConvAvg')) $('#pnlConvAvg').textContent = Math.round(((a.konwersje || 0) / 14) * 10) / 10;
+  if ($('#pnlStages')) {
+    const order = [['skonwertowany', 'Przekonwertowany', '#3ecf8e'], ['zimny', 'Zimny', '#5b9dff'], ['cieply', 'Ciepły', '#f0c764'], ['goracy', 'Gorący', '#ff9d6b'], ['semi_dq', 'Semi-DQ', '#c0a8ff'], ['dq', 'Zdyskwalifikowany', '#e0524b']];
+    const total = a.total || 0;
+    $('#pnlStages').innerHTML = order.map(([k, l, c]) => { const n = (a.byStage && a.byStage[k]) || 0; const pct = total ? Math.round(n / total * 1000) / 10 : 0; return `<div class="stage-row"><span class="sl"><span class="sdot" style="background:${c}"></span>${l}</span><span class="sv">${pct}%<b>${n}</b></span></div>`; }).join('');
+  }
+  if ($('#pnlConvLine')) $('#pnlConvLine').innerHTML = convChartHtml(a.series);
+}
 
 // ---------- A/B testy ----------
 let abData = null;

@@ -52,7 +52,21 @@
     <section class="view active" id="view-panel">
       <h1 class="page-title">Panel</h1>
       <p class="page-sub">Szybki przegląd Twojego settera.</p>
-      <div id="panelStats" class="stats"></div>
+      <div class="dtabs" id="pnlTabs"><button class="dtab" data-d="today">Dziś</button><button class="dtab" data-d="24h">24h</button><button class="dtab" data-d="72h">72h</button><button class="dtab" data-d="7d">7 dni</button><button class="dtab active" data-d="30d">30 dni</button><button class="dtab" data-d="all">Cały czas</button></div>
+      <div class="ig-grid" id="pnlMetrics"></div>
+      <div class="anal-2col">
+        <div class="card">
+          <div class="card-title">Konwersje</div>
+          <p class="muted small" style="margin:0">Kontakty skonwertowane</p>
+          <div class="gauge glow" id="pnlGauge"><div class="gauge-in"><div class="gauge-n" id="pnlGaugeN">0</div><div class="gauge-l">ŁĄCZNIE</div></div></div>
+          <div class="setrow"><span class="muted">✦ Konwersje <b id="pnlConvN" style="color:var(--text)">0</b></span><span class="muted">⏱ Średnia dzienna <b id="pnlConvAvg" style="color:var(--text)">0</b></span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Rozkład etapów (lejek)</div>
+          <div id="pnlStages" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">Wskaźnik konwersji / dzień</div><div id="pnlConvLine"></div></div>
       <h3>Skróty</h3>
       <div class="qlinks">
         <div class="qlink" data-go="testchat"><div class="qt">💬 Przetestuj settera</div><div class="qd">Pogadaj jak klientka gabinetu</div></div>
