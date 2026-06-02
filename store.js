@@ -77,6 +77,7 @@ function defaultSettings() {
       skipBigAccounts: true,
       followersLimit: { enabled: false, value: 10000 },
       blacklist: [],
+      botControl: { autoReply: true, smartFollowups: true, ignoreFollowing: false, responseDelays: false, handoffDetection: true },
       commentToDm: { keyword: 'oferta', dm: 'jesteś? widziałem twój komentarz 🙂', replyToComment: true, publicReply: 'dzięki, zerknij na dm 🙂' },
       recovery: { enabled: false, dailyMin: 5, dailyMax: 15, messages: ['jesteś?', 'wracam, bo coś mi chodziło po głowie odnośnie twojego gabinetu', 'hej, robimy niedługo darmowy webinar o pozyskiwaniu klientek, wpadniesz?'] },
       coldOutreach: {
@@ -155,6 +156,7 @@ export function load() {
     mergeDeep(db.settings.config.recovery, (d.config || {}).recovery);
     mergeDeep(db.settings.config.commentToDm, (d.config || {}).commentToDm);
     mergeDeep(db.settings.config.quietHours, (d.config || {}).quietHours);
+    mergeDeep(db.settings.config.botControl, (d.config || {}).botControl);
     mergeDeep(db.settings.config.ab, (d.config || {}).ab);
   }
   // produkcyjny fallback ze zmiennych środowiskowych (hosting bez trwałego dysku)

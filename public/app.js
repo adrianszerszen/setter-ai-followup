@@ -92,6 +92,10 @@ async function loadSettings() {
   $('#igTokenState').textContent = i.pageAccessTokenSet ? '· ustawiony ✓' : '· brak';
   $('#igSecretState').textContent = i.appSecretSet ? '· ustawiony ✓' : '· brak';
   $('#igWebhookUrl').value = location.origin + '/webhook';
+  // Kontrola bota + karty połączeń
+  const bc = c.botControl || {};
+  if ($('#bcAuto')) { $('#bcAuto').checked = bc.autoReply !== false; $('#bcFollowups').checked = bc.smartFollowups !== false; $('#bcIgnoreFollowing').checked = !!bc.ignoreFollowing; $('#bcDelays').checked = !!bc.responseDelays; $('#bcHandoff').checked = bc.handoffDetection !== false; }
+  renderConnCards(i);
   // Openery + status
   renderOpeners(settings.openers || []); fillOpenerSelect(settings.openers || []);
   const ok = settings.apiKeySet;
@@ -213,6 +217,7 @@ $('#saveSettings').addEventListener('click', async () => {
       skipBigAccounts: $('#flEnabled').checked,
       followersLimit: { enabled: $('#flEnabled').checked, value: parseInt($('#flValue').value) || 10000 },
       blacklist,
+      botControl: { autoReply: $('#bcAuto').checked, smartFollowups: $('#bcFollowups').checked, ignoreFollowing: $('#bcIgnoreFollowing').checked, responseDelays: $('#bcDelays').checked, handoffDetection: $('#bcHandoff').checked },
     },
   };
   const key = $('#apiKey').value.trim(); if (key) body.apiKey = key;
@@ -247,6 +252,20 @@ if ($('#flValue')) $('#flValue').addEventListener('input', updateFlLabel);
 // ---------- AI Helper + dzwonek ----------
 if ($('#aiHelperBtn')) $('#aiHelperBtn').addEventListener('click', () => { const o = $('#tutorialOverlay'); if (o) o.classList.remove('hidden'); });
 if ($('#bellBtn')) $('#bellBtn').addEventListener('click', () => alert('Brak nowych powiadomień 🙂'));
+
+// ---------- karty połączeń (Integracje) + zakładki ----------
+function renderConnCards(ig) {
+  const el = $('#connCards'); if (!el) return;
+  const connected = !!(ig && ig.enabled && ig.pageAccessTokenSet);
+  const handle = (ig && ig.igUserId) ? '@' + ig.igUserId : 'Twoje konto Instagram';
+  el.innerHTML =
+    `<div class="conn-card"><div class="conn-ico ig">📷</div><div class="conn-main"><div class="conn-name">${connected ? esc(handle) : 'Instagram'} <span class="conn-badge ${connected ? 'ok' : 'no'}">${connected ? 'POŁĄCZONO' : 'NIE POŁĄCZONO'}</span></div><div class="conn-desc">${connected ? 'Setter obsługuje wiadomości na tym koncie' : 'Połącz konto, aby setter odpowiadał na DM-y'}</div></div>${connected ? '<button class="btn danger" data-conn="ig-off">Odłącz</button>' : '<button class="btn" data-go="instagram">Połącz</button>'}</div>`
+    + `<div class="conn-card"><div class="conn-ico fb">f</div><div class="conn-main"><div class="conn-name">Facebook Messenger <span class="conn-badge no">NIE POŁĄCZONO</span></div><div class="conn-desc">Połącz stronę Facebook, aby odpowiadać na Messenger</div></div><button class="btn" data-conn="fb">Połącz Facebook</button></div>`;
+  const off = $('#connCards [data-conn="ig-off"]'); if (off) off.addEventListener('click', async () => { await api('/settings', { method: 'POST', body: { instagram: { enabled: false } } }); await loadSettings(); });
+  const fb = $('#connCards [data-conn="fb"]'); if (fb) fb.addEventListener('click', () => alert('Integracja Facebook Messenger, wkrótce. Najpierw podłączamy Instagram.'));
+}
+$$('#setTabs .tab').forEach(t => t.addEventListener('click', () => $$('#setTabs .tab').forEach(x => x.classList.toggle('active', x === t))));
+$$('#dtabs .dtab').forEach(t => t.addEventListener('click', () => $$('#dtabs .dtab').forEach(x => x.classList.toggle('active', x === t))));
 
 // ---------- Ustawienia Konta ----------
 async function loadKonto() {
@@ -390,6 +409,11 @@ function crmSection(cls, title, rows) {
 async function loadAnalytics() {
   const a = await api('/analytics');
   $('#statCards').innerHTML = statCardsHtml(a);
+  if ($('#attrCards')) $('#attrCards').innerHTML =
+    `<div class="stat"><div class="num">0</div><div class="lbl">Punkty styku</div></div>`
+    + `<div class="stat"><div class="num">0</div><div class="lbl">Aktywne źródła</div></div>`
+    + `<div class="stat"><div class="num">—</div><div class="lbl">Najlepsze źródło</div></div>`
+    + `<div class="stat"><div class="num">${a.conversion ?? 0}%</div><div class="lbl">Konwersja</div><div class="lbl" style="opacity:.7;margin-top:4px">${a.konwersje || 0} / ${a.total || 0}</div></div>`;
   if ($('#chart')) $('#chart').innerHTML = chartHtml(a.series);
   if ($('#convChart')) $('#convChart').innerHTML = convChartHtml(a.series);
   if ($('#newbieNote')) $('#newbieNote').innerHTML = a.newbiePeak

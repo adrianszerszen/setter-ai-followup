@@ -487,6 +487,7 @@
     <section class="view" id="view-analityka">
       <h1 class="page-title">Analityka</h1>
       <p class="page-sub">Etapy leadów, rozpoczęte rozmowy i konwersja na umówienie.</p>
+      <div class="dtabs" id="dtabs"><button class="dtab" data-d="today">Dziś</button><button class="dtab" data-d="24h">24h</button><button class="dtab" data-d="72h">72h</button><button class="dtab" data-d="7d">7d</button><button class="dtab active" data-d="30d">30d</button><button class="dtab" data-d="all">Cały czas</button></div>
       <div id="statCards" class="stats"></div>
       <h3>Rozmowy / dzień (ostatnie 14 dni)</h3>
       <div id="chart"></div>
@@ -504,6 +505,21 @@
           <li><b>Pik nowicjusza:</b> na starcie konwersja jest sztucznie wysoka (najpierw odpisują najgorętsi), potem spada do 50-70% i to jest Twój realny poziom. To nie wada settera.</li>
           <li>Każdą poprawkę przenieś do testu („Testuj ten czat”), cofnij się do miejsca błędu (ołówek) i potwierdź 3×.</li>
         </ul>
+      </div>
+
+      <h3>Atrybucja <span class="muted small">(wymaga podłączonego Instagrama)</span></h3>
+      <div class="stats" id="attrCards"></div>
+      <div class="card">
+        <div class="sec-h">📰 Ostatnie posty</div>
+        <div class="anal-empty">Brak ostatnich postów. Opublikuj treści na Instagramie, aby zobaczyć statystyki.</div>
+      </div>
+      <div class="card">
+        <div class="sec-h">🎯 Lejek konwersji</div><div class="sec-sub">Pierwsze vs ostatnie dotknięcie</div>
+        <div class="anal-empty">Brak danych</div>
+      </div>
+      <div class="anal-2col">
+        <div class="card"><div class="sec-h">📊 Rozkład źródeł</div><div class="sec-sub">Źródła pozyskania kontaktów</div><div class="donut">Brak danych</div></div>
+        <div class="card"><div class="sec-h">📈 Oś czasu</div><div class="sec-sub">Punkty styku w czasie</div><div class="anal-empty">Brak danych</div></div>
       </div>
     </section>
 
@@ -525,6 +541,22 @@
     <!-- USTAWIENIA -->
     <section class="view" id="view-ustawienia">
       <h1 class="page-title">Ustawienia Setter AI</h1>
+      <div class="tabs" id="setTabs">
+        <button class="tab active" data-stab="ogolne">Ustawienia ogólne</button>
+        <button class="tab" data-stab="integracje">Integracje</button>
+        <button class="tab" data-stab="jezyk">Ustawienia języka</button>
+      </div>
+      <div id="connCards"></div>
+      <div class="card">
+        <div class="card-title">Kontrola bota</div>
+        <div class="bc-grid" style="margin-top:8px">
+          <div class="bc-item"><div class="bc-tx"><div class="bc-t">Automatyczne odpowiedzi</div><div class="bc-d">AI odpowiada na wiadomości automatycznie</div></div><label class="switch"><input type="checkbox" id="bcAuto" /><span class="sl"></span></label></div>
+          <div class="bc-item"><div class="bc-tx"><div class="bc-t">Inteligentne follow-upy</div><div class="bc-d">Ponownie angażuj leady, które przestały odpowiadać</div></div><label class="switch"><input type="checkbox" id="bcFollowups" /><span class="sl"></span></label></div>
+          <div class="bc-item"><div class="bc-tx"><div class="bc-t">Ignoruj obserwowanych</div><div class="bc-d">Pomiń odpowiedzi do kont, które obserwujesz</div></div><label class="switch"><input type="checkbox" id="bcIgnoreFollowing" /><span class="sl"></span></label></div>
+          <div class="bc-item"><div class="bc-tx"><div class="bc-t">Opóźnienia odpowiedzi</div><div class="bc-d">AI decyduje kiedy odpowiedzieć na podstawie zaangażowania</div></div><label class="switch"><input type="checkbox" id="bcDelays" /><span class="sl"></span></label></div>
+          <div class="bc-item"><div class="bc-tx"><div class="bc-t">Wykrywanie przejęcia rozmowy</div><div class="bc-d">Automatycznie wyłącz AI gdy odpowiesz z aplikacji Instagram</div></div><label class="switch"><input type="checkbox" id="bcHandoff" /><span class="sl"></span></label></div>
+        </div>
+      </div>
       <div class="card">
         <label class="fld">Dostawca AI</label>
         <div class="row">
