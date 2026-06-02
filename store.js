@@ -52,6 +52,7 @@ function defaultSettings() {
       pageAccessToken: '',
       igUserId: '',
       appSecret: '',
+      appId: '',
       commentKeyword: 'oferta',
     },
     persona: {
@@ -266,7 +267,7 @@ export function updateSettings(patch) {
   if (patch.clearApiKey === true) s.apiKey = '';
   if (patch.instagram && typeof patch.instagram === 'object') {
     if (!s.instagram) s.instagram = {};
-    for (const k of ['enabled', 'verifyToken', 'igUserId', 'commentKeyword']) {
+    for (const k of ['enabled', 'verifyToken', 'igUserId', 'commentKeyword', 'appId']) {
       if (patch.instagram[k] !== undefined) s.instagram[k] = patch.instagram[k];
     }
     if (typeof patch.instagram.pageAccessToken === 'string' && patch.instagram.pageAccessToken.trim() !== '') s.instagram.pageAccessToken = patch.instagram.pageAccessToken.trim();

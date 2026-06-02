@@ -562,15 +562,23 @@
     <!-- INSTAGRAM -->
     <section class="view" id="view-instagram">
       <h1 class="page-title">Instagram</h1>
-      <p class="page-sub">Podłączenie konta przez oficjalne API Meta (dane wg PRZEWODNIK-META.md).</p>
+      <p class="page-sub">Połącz konto przez oficjalne logowanie Facebooka (Meta), tak jak w Setorze.</p>
       <div class="card">
+        <div class="card-title">🔵 Połącz przez Facebooka (jednym kliknięciem)</div>
+        <p class="muted small">Wklej dane aplikacji Meta (z developers.facebook.com), zapisz, a potem zaloguj się. Po zalogowaniu setter sam pobierze Twoje konto i zacznie pokazywać dane.</p>
+        <label class="fld">App ID</label><input type="text" id="igAppId" placeholder="np. 1234567890" />
+        <label class="fld">App Secret <span id="igSecretState" class="muted"></span></label><input type="password" id="igAppSecret" />
+        <label class="fld">OAuth Redirect URI (wklej w aplikacji Meta → Valid OAuth Redirect URIs)</label><input type="text" id="igRedirect" readonly />
+        <div class="row"><button id="saveIg" class="btn">Zapisz dane aplikacji</button><a class="btn primary" href="/auth/facebook">🔵 Zaloguj się przez Facebooka</a><span id="igSaved" class="saved hidden">zapisano ✓</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Zaawansowane (webhook / ręcznie)</div>
         <label class="radio"><input type="checkbox" id="igEnabled" /> &nbsp;Włącz obsługę Instagrama</label>
         <label class="fld">Webhook URL (wklej w Meta jako Callback URL)</label><input type="text" id="igWebhookUrl" readonly />
         <label class="fld">Verify Token</label><div class="row"><input type="text" id="igVerifyToken" placeholder="np. followup-2026-xyz" /><button id="igGenToken" class="btn sm">losuj</button></div>
         <label class="fld">Instagram User ID</label><input type="text" id="igUserId" />
         <label class="fld">Page Access Token <span id="igTokenState" class="muted"></span></label><input type="password" id="igPageToken" />
-        <label class="fld">App Secret <span id="igSecretState" class="muted"></span></label><input type="password" id="igAppSecret" />
-        <div class="row"><button id="saveIg" class="btn primary">Zapisz Instagram</button><span id="igSaved" class="saved hidden">zapisano ✓</span></div>
+        <div class="row"><button id="saveIg2" class="btn primary">Zapisz</button><span id="igSaved2" class="saved hidden">zapisano ✓</span></div>
       </div>
     </section>
 
@@ -758,6 +766,18 @@
 
       <h3>Gamifikacja</h3>
       <p>Celuj w <b>poziom 12</b> (zwykle 2-3 h testowania) = instrukcje zwykle gotowe na żywo. Potem 14 dni obserwacji prawdziwych rozmów (45 min/dzień).</p>
+    </div>
+  </div>
+</div>
+
+<!-- POŁĄCZ INSTAGRAM (modal) -->
+<div id="connectOverlay" class="overlay hidden">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head"><h2>🔗 Połącz Instagram (Meta)</h2><button id="closeConnect" class="help-btn">✕</button></div>
+    <div class="modal-body">
+      <p>Połączenie idzie przez oficjalne logowanie Facebooka (Meta), tak jak w Setorze. Kliknij, żeby zalogować się swoim kontem, wtedy zaczną pojawiać się dane.</p>
+      <a href="/auth/facebook" class="btn primary" style="display:inline-flex;margin:6px 0 14px">🔵 Zaloguj się przez Facebooka</a>
+      <div class="warn">Żeby przycisk zadziałał, najpierw potrzebna jest aplikacja Meta (App ID + App Secret) i zgoda Meta na wiadomości. <a data-go="instagram" id="cmSetup" style="color:var(--blue);cursor:pointer">Skonfiguruj aplikację Meta →</a></div>
     </div>
   </div>
 </div>

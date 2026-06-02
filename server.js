@@ -167,6 +167,43 @@ app.post('/api/flows', (req, res) => {
 });
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+// ---- LOGOWANIE META (oficjalny Facebook Login dla Instagrama) ----
+function publicBase(req) { return process.env.PUBLIC_URL || ('https://' + (req.headers['x-forwarded-host'] || req.headers.host)); }
+function authPage(title, msg) {
+  return '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:Inter,system-ui,sans-serif;background:#0a0a0a;color:#eee;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:24px"><div style="max-width:560px;padding:32px;border:1px solid #333;border-radius:16px"><h2 style="margin:0 0 10px">' + title + '</h2><p style="color:#aaa;line-height:1.6">' + msg + '</p><a href="/" style="color:#5b9dff;text-decoration:none">&larr; wróć do panelu</a></div>';
+}
+app.get('/auth/facebook', (req, res) => {
+  const ig = store.getInstagram();
+  if (!ig.appId) return res.send(authPage('Najpierw skonfiguruj aplikację Meta', 'Aby zalogować się przez Facebooka, potrzebny jest App ID Twojej aplikacji Meta (z developers.facebook.com). Wklej App ID oraz App Secret w panelu (zakładka Instagram), zapisz i kliknij ponownie. To wymóg Meta: bez własnej aplikacji logowanie nie ruszy.'));
+  const redirect = publicBase(req) + '/auth/facebook/callback';
+  const scope = ['instagram_basic', 'instagram_manage_messages', 'pages_show_list', 'pages_messaging', 'business_management'].join(',');
+  const url = 'https://www.facebook.com/v21.0/dialog/oauth?client_id=' + encodeURIComponent(ig.appId) + '&redirect_uri=' + encodeURIComponent(redirect) + '&response_type=code&scope=' + encodeURIComponent(scope);
+  res.redirect(url);
+});
+app.get('/auth/facebook/callback', async (req, res) => {
+  const ig = store.getInstagram();
+  const code = req.query.code;
+  if (req.query.error) return res.redirect('/?ig=denied');
+  if (!code || !ig.appId || !ig.appSecret) return res.redirect('/?ig=error');
+  try {
+    const redirect = publicBase(req) + '/auth/facebook/callback';
+    const tRes = await fetch('https://graph.facebook.com/v21.0/oauth/access_token?client_id=' + encodeURIComponent(ig.appId) + '&redirect_uri=' + encodeURIComponent(redirect) + '&client_secret=' + encodeURIComponent(ig.appSecret) + '&code=' + encodeURIComponent(code));
+    const t = await tRes.json();
+    if (!t.access_token) return res.redirect('/?ig=error');
+    let userToken = t.access_token;
+    try {
+      const llRes = await fetch('https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=' + encodeURIComponent(ig.appId) + '&client_secret=' + encodeURIComponent(ig.appSecret) + '&fb_exchange_token=' + encodeURIComponent(t.access_token));
+      const ll = await llRes.json(); if (ll.access_token) userToken = ll.access_token;
+    } catch {}
+    const pRes = await fetch('https://graph.facebook.com/v21.0/me/accounts?fields=name,access_token,instagram_business_account&access_token=' + encodeURIComponent(userToken));
+    const p = await pRes.json();
+    const page = (p.data || []).find(x => x.instagram_business_account);
+    if (!page) return res.redirect('/?ig=nopage');
+    store.updateSettings({ instagram: { enabled: true, igUserId: page.instagram_business_account.id, pageAccessToken: page.access_token } });
+    res.redirect('/?ig=connected');
+  } catch (e) { res.redirect('/?ig=error'); }
+});
+
 // ---- WEBHOOK INSTAGRAM ----
 app.get('/webhook', (req, res) => ig.verifyWebhook(req, res));
 app.post('/webhook', async (req, res) => {

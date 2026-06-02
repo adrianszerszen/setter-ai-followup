@@ -92,6 +92,8 @@ async function loadSettings() {
   $('#igTokenState').textContent = i.pageAccessTokenSet ? '· ustawiony ✓' : '· brak';
   $('#igSecretState').textContent = i.appSecretSet ? '· ustawiony ✓' : '· brak';
   $('#igWebhookUrl').value = location.origin + '/webhook';
+  if ($('#igAppId')) $('#igAppId').value = i.appId || '';
+  if ($('#igRedirect')) $('#igRedirect').value = location.origin + '/auth/facebook/callback';
   // Kontrola bota + karty połączeń
   const bc = c.botControl || {};
   if ($('#bcAuto')) { $('#bcAuto').checked = bc.autoReply !== false; $('#bcFollowups').checked = bc.smartFollowups !== false; $('#bcIgnoreFollowing').checked = !!bc.ignoreFollowing; $('#bcDelays').checked = !!bc.responseDelays; $('#bcHandoff').checked = bc.handoffDetection !== false; }
@@ -261,10 +263,11 @@ function renderConnCards(ig) {
   const connected = !!(ig && ig.enabled && ig.pageAccessTokenSet);
   const handle = (ig && ig.igUserId) ? '@' + ig.igUserId : 'Twoje konto Instagram';
   el.innerHTML =
-    `<div class="conn-card"><div class="conn-ico ig">📷</div><div class="conn-main"><div class="conn-name">${connected ? esc(handle) : 'Instagram'} <span class="conn-badge ${connected ? 'ok' : 'no'}">${connected ? 'POŁĄCZONO' : 'NIE POŁĄCZONO'}</span></div><div class="conn-desc">${connected ? 'Setter obsługuje wiadomości na tym koncie' : 'Połącz konto, aby setter odpowiadał na DM-y'}</div></div>${connected ? '<button class="btn danger" data-conn="ig-off">Odłącz</button>' : '<button class="btn" data-go="instagram">Połącz</button>'}</div>`
+    `<div class="conn-card"><div class="conn-ico ig">📷</div><div class="conn-main"><div class="conn-name">${connected ? esc(handle) : 'Instagram'} <span class="conn-badge ${connected ? 'ok' : 'no'}">${connected ? 'POŁĄCZONO' : 'NIE POŁĄCZONO'}</span></div><div class="conn-desc">${connected ? 'Setter obsługuje wiadomości na tym koncie' : 'Połącz konto, aby setter odpowiadał na DM-y'}</div></div>${connected ? '<button class="btn danger" data-conn="ig-off">Odłącz</button>' : '<button class="btn" data-conn="open">Połącz</button>'}</div>`
     + `<div class="conn-card"><div class="conn-ico fb">f</div><div class="conn-main"><div class="conn-name">Facebook Messenger <span class="conn-badge no">NIE POŁĄCZONO</span></div><div class="conn-desc">Połącz stronę Facebook, aby odpowiadać na Messenger</div></div><button class="btn" data-conn="fb">Połącz Facebook</button></div>`;
   const off = $('#connCards [data-conn="ig-off"]'); if (off) off.addEventListener('click', async () => { await api('/settings', { method: 'POST', body: { instagram: { enabled: false } } }); await loadSettings(); });
   const fb = $('#connCards [data-conn="fb"]'); if (fb) fb.addEventListener('click', () => alert('Integracja Facebook Messenger, wkrótce. Najpierw podłączamy Instagram.'));
+  const op = $('#connCards [data-conn="open"]'); if (op) op.addEventListener('click', () => { const o = $('#connectOverlay'); if (o) o.classList.remove('hidden'); });
 }
 $$('#setTabs .tab').forEach(t => t.addEventListener('click', () => $$('#setTabs .tab').forEach(x => x.classList.toggle('active', x === t))));
 $$('#dtabs .dtab').forEach(t => t.addEventListener('click', () => $$('#dtabs .dtab').forEach(x => x.classList.toggle('active', x === t))));
@@ -284,12 +287,18 @@ async function loadKonto() {
 
 // ---------- instagram ----------
 $('#igGenToken').addEventListener('click', () => { $('#igVerifyToken').value = 'followup-' + Math.random().toString(36).slice(2, 10); });
-$('#saveIg').addEventListener('click', async () => {
-  const body = { instagram: { enabled: $('#igEnabled').checked, verifyToken: $('#igVerifyToken').value.trim(), igUserId: $('#igUserId').value.trim() } };
+async function saveInstagram() {
+  const body = { instagram: { enabled: $('#igEnabled').checked, verifyToken: $('#igVerifyToken').value.trim(), igUserId: $('#igUserId').value.trim(), appId: $('#igAppId').value.trim() } };
   const pt = $('#igPageToken').value.trim(); if (pt) body.instagram.pageAccessToken = pt;
   const as = $('#igAppSecret').value.trim(); if (as) body.instagram.appSecret = as;
-  await api('/settings', { method: 'POST', body }); $('#igPageToken').value = ''; $('#igAppSecret').value = ''; flash('#igSaved'); await loadSettings();
-});
+  await api('/settings', { method: 'POST', body }); $('#igPageToken').value = ''; $('#igAppSecret').value = ''; flash('#igSaved'); flash('#igSaved2'); await loadSettings();
+}
+$('#saveIg').addEventListener('click', saveInstagram);
+if ($('#saveIg2')) $('#saveIg2').addEventListener('click', saveInstagram);
+// Połącz Instagram (modal)
+if ($('#closeConnect')) $('#closeConnect').addEventListener('click', () => $('#connectOverlay').classList.add('hidden'));
+if ($('#connectOverlay')) $('#connectOverlay').addEventListener('click', e => { if (e.target.id === 'connectOverlay') e.currentTarget.classList.add('hidden'); });
+if ($('#cmSetup')) $('#cmSetup').addEventListener('click', () => { const o = $('#connectOverlay'); if (o) o.classList.add('hidden'); });
 
 // ---------- openery ----------
 function renderOpeners(list) {
@@ -651,3 +660,15 @@ if ($('#saveLive')) $('#saveLive').addEventListener('click', async () => { const
 
 // ---------- init ----------
 loadSettings().then(loadPanel).catch(e => { $('#statusText').textContent = 'błąd: ' + e.message; });
+// komunikat po powrocie z logowania Facebooka
+(function () {
+  const q = new URLSearchParams(location.search).get('ig'); if (!q) return;
+  const m = {
+    connected: '✅ Instagram połączony przez Facebooka! Dane zaczną się pojawiać.',
+    error: '⚠️ Logowanie nie powiodło się. Sprawdź App ID i App Secret aplikacji Meta, zapisz i spróbuj ponownie.',
+    nopage: '⚠️ Zalogowano, ale nie znaleziono konta Instagram podpiętego do strony na Facebooku. Połącz IG ze stroną FB w ustawieniach Meta.',
+    denied: 'Logowanie anulowane.',
+  };
+  if (m[q]) alert(m[q]);
+  history.replaceState({}, '', '/');
+})();
