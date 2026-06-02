@@ -52,7 +52,8 @@ function defaultSettings() {
       pageAccessToken: '',
       igUserId: '',
       appSecret: '',
-      appId: '',
+      appId: '1183818090575252',
+      configId: '1175999537986941',
       commentKeyword: 'oferta',
     },
     persona: {
@@ -160,9 +161,13 @@ export function load() {
     mergeDeep(db.settings.config.botControl, (d.config || {}).botControl);
     mergeDeep(db.settings.config.ab, (d.config || {}).ab);
   }
+  // dopełnij pod-pola instagram (np. nowe configId) bez nadpisywania już ustawionych wartości
+  if (db.settings.instagram) mergeDeep(db.settings.instagram, d.instagram);
   // produkcyjny fallback ze zmiennych środowiskowych (hosting bez trwałego dysku)
   if (process.env.AI_API_KEY && !db.settings.apiKey) db.settings.apiKey = process.env.AI_API_KEY;
   if (process.env.AI_PROVIDER) db.settings.provider = process.env.AI_PROVIDER;
+  // Sekret aplikacji Meta najlepiej trzymać w zmiennej środowiskowej (przetrwa redeploy, nie ląduje w pliku db).
+  if (process.env.FB_APP_SECRET) { if (!db.settings.instagram) db.settings.instagram = {}; if (!db.settings.instagram.appSecret) db.settings.instagram.appSecret = process.env.FB_APP_SECRET; }
   // Model bierzemy z kodu/ustawień (domyślnie Haiku). Env AI_MODEL traktujemy tylko jako fallback,
   // gdy w ustawieniach nie ma modelu, żeby stara zmienna na serwerze nie nadpisywała wyboru.
   if (process.env.AI_MODEL && !db.settings.model) db.settings.model = process.env.AI_MODEL;
@@ -179,7 +184,7 @@ export function getSettings() { return load().settings; }
 
 export function getInstagram() {
   const s = load().settings;
-  if (!s.instagram) s.instagram = { enabled: false, verifyToken: '', pageAccessToken: '', igUserId: '', appSecret: '', commentKeyword: 'oferta' };
+  if (!s.instagram) s.instagram = { enabled: false, verifyToken: '', pageAccessToken: '', igUserId: '', appSecret: '', appId: '1183818090575252', configId: '1175999537986941', commentKeyword: 'oferta' };
   return s.instagram;
 }
 
@@ -267,7 +272,7 @@ export function updateSettings(patch) {
   if (patch.clearApiKey === true) s.apiKey = '';
   if (patch.instagram && typeof patch.instagram === 'object') {
     if (!s.instagram) s.instagram = {};
-    for (const k of ['enabled', 'verifyToken', 'igUserId', 'commentKeyword', 'appId']) {
+    for (const k of ['enabled', 'verifyToken', 'igUserId', 'commentKeyword', 'appId', 'configId']) {
       if (patch.instagram[k] !== undefined) s.instagram[k] = patch.instagram[k];
     }
     if (typeof patch.instagram.pageAccessToken === 'string' && patch.instagram.pageAccessToken.trim() !== '') s.instagram.pageAccessToken = patch.instagram.pageAccessToken.trim();

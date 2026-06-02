@@ -40,6 +40,8 @@ app.get('/api/settings', (req, res) => {
       igUserId: (s.instagram && s.instagram.igUserId) || '',
       verifyToken: (s.instagram && s.instagram.verifyToken) || '',
       commentKeyword: (s.instagram && s.instagram.commentKeyword) || '',
+      appId: (s.instagram && s.instagram.appId) || '',
+      configId: (s.instagram && s.instagram.configId) || '',
       pageAccessTokenSet: !!(s.instagram && s.instagram.pageAccessToken),
       appSecretSet: !!(s.instagram && s.instagram.appSecret),
     },
@@ -176,8 +178,12 @@ app.get('/auth/facebook', (req, res) => {
   const ig = store.getInstagram();
   if (!ig.appId) return res.send(authPage('Najpierw skonfiguruj aplikację Meta', 'Aby zalogować się przez Facebooka, potrzebny jest App ID Twojej aplikacji Meta (z developers.facebook.com). Wklej App ID oraz App Secret w panelu (zakładka Instagram), zapisz i kliknij ponownie. To wymóg Meta: bez własnej aplikacji logowanie nie ruszy.'));
   const redirect = publicBase(req) + '/auth/facebook/callback';
-  const scope = ['instagram_basic', 'instagram_manage_messages', 'pages_show_list', 'pages_messaging', 'business_management'].join(',');
-  const url = 'https://www.facebook.com/v21.0/dialog/oauth?client_id=' + encodeURIComponent(ig.appId) + '&redirect_uri=' + encodeURIComponent(redirect) + '&response_type=code&scope=' + encodeURIComponent(scope);
+  const base = 'https://www.facebook.com/v21.0/dialog/oauth?client_id=' + encodeURIComponent(ig.appId) + '&redirect_uri=' + encodeURIComponent(redirect) + '&response_type=code';
+  // Aplikacja typu "Facebook Login dla firm" wymaga config_id (uprawnienia są zaszyte w Konfiguracji po stronie Meta).
+  // Gdy configId nie jest ustawione, używamy klasycznego scope (zwykłe Facebook Login) jako fallback.
+  const url = ig.configId
+    ? base + '&config_id=' + encodeURIComponent(ig.configId)
+    : base + '&scope=' + encodeURIComponent(['instagram_basic', 'instagram_manage_messages', 'pages_show_list', 'pages_messaging', 'business_management'].join(','));
   res.redirect(url);
 });
 app.get('/auth/facebook/callback', async (req, res) => {
