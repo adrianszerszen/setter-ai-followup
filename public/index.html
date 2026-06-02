@@ -478,13 +478,27 @@
       <h1 class="page-title">Tryb Recovery</h1>
       <p class="page-sub">Wskrzeszanie urwanych rozmów krótkim triggerem, by setter mógł je przejąć.</p>
       <div class="card">
-        <label class="radio"><input type="checkbox" id="rEnabled" /> &nbsp;Włącz tryb recovery</label>
-        <div class="row" style="gap:16px">
-          <div style="flex:1"><label class="fld">Min. dziennie</label><input type="number" id="rMin" min="0" max="100" /></div>
-          <div style="flex:1"><label class="fld">Maks. dziennie</label><input type="number" id="rMax" min="0" max="100" /></div>
+        <div class="setrow"><div class="card-title">📊 Dzisiaj</div><label class="switch"><input type="checkbox" id="rEnabled" /><span class="sl"></span></label></div>
+        <div class="ov-grid" style="margin-top:8px">
+          <div class="ov-tile"><div class="ot-l">Odpowiedni</div><div class="ot-n">0</div></div>
+          <div class="ov-tile"><div class="ot-l">W kolejce</div><div class="ot-n">0</div></div>
+          <div class="ov-tile"><div class="ot-l" style="color:#3ecf8e">Wysłano</div><div class="ot-n">0</div></div>
+          <div class="ov-tile"><div class="ot-l">Nie udało się / Pominięto</div><div class="ot-n">0</div></div>
         </div>
-        <label class="fld">Wiadomości odzyskiwania (po jednej w linii, rotowane)</label>
-        <textarea id="rMessages" rows="3"></textarea>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Dzienna ilość</div>
+        <p class="muted small">Z tego zakresu wybierany jest dzienny cel, tak jak w zimnym zasięgu.</p>
+        <div class="picker-row">
+          <div class="picker"><span class="pk-lbl">Minimum</span><div class="pk-box"><input type="number" id="rMin" min="0" max="100" /></div><span class="pk-unit">/dzień</span></div>
+          <div class="picker"><span class="pk-lbl">Maksymalny</span><div class="pk-box"><input type="number" id="rMax" min="0" max="100" /></div><span class="pk-unit">/dzień</span></div>
+        </div>
+        <p class="muted small" style="text-align:center">Codziennie z tego zakresu wybierany jest losowy cel. <b><span id="rMinL">5</span>, <span id="rMaxL">15</span></b> /dzień</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Wiadomości</div>
+        <p class="muted small">Dodaj kilka wiadomości odzyskiwania (po jednej w linii). Aktywne są rotowane.</p>
+        <textarea id="rMessages" rows="4"></textarea>
         <div class="row"><button id="saveRecovery" class="btn primary">Zapisz</button><span id="recSaved" class="saved hidden">zapisano ✓</span></div>
       </div>
       <div class="card guide">
@@ -502,6 +516,14 @@
       <h1 class="page-title">Analityka</h1>
       <p class="page-sub">Etapy leadów, rozpoczęte rozmowy i konwersja na umówienie.</p>
       <div class="dtabs" id="dtabs"><button class="dtab" data-d="today">Dziś</button><button class="dtab" data-d="24h">24h</button><button class="dtab" data-d="72h">72h</button><button class="dtab" data-d="7d">7d</button><button class="dtab active" data-d="30d">30d</button><button class="dtab" data-d="all">Cały czas</button></div>
+      <div class="ig-head"><div class="ig-av">📷</div><div><div class="ig-h">Instagram Insights</div><div class="ig-s">Wymaga podłączonego Instagrama (wtedy realne liczby)</div></div></div>
+      <div class="ig-grid" id="igInsights"></div>
+      <h3>Przegląd</h3>
+      <div class="ov-grid" id="igOverview"></div>
+      <h3>Dzienny zasięg <span class="muted small">Max: 0</span></h3>
+      <div class="dayreach" id="dayReach"></div>
+      <div class="dr-axis" id="dayAxis"></div>
+      <h3>Nasze dane (działają teraz)</h3>
       <div id="statCards" class="stats"></div>
       <h3>Rozmowy / dzień (ostatnie 14 dni)</h3>
       <div id="chart"></div>

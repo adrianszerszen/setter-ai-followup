@@ -76,7 +76,7 @@ async function loadSettings() {
   $('#zqMinF').value = zq.minFollowers ?? 0; $('#zqMaxF').value = zq.maxFollowers ?? 0; $('#zqMinP').value = zq.minPosts ?? 0;
   $('#zqUncertain').checked = zq.skipUncertain !== false; $('#zqFilterDm').checked = zq.filterIncomingDm !== false;
   // Recovery
-  const rc = c.recovery || {}; $('#rEnabled').checked = !!rc.enabled; $('#rMin').value = rc.dailyMin ?? 5; $('#rMax').value = rc.dailyMax ?? 15; $('#rMessages').value = (rc.messages || []).join('\n');
+  const rc = c.recovery || {}; $('#rEnabled').checked = !!rc.enabled; $('#rMin').value = rc.dailyMin ?? 5; $('#rMax').value = rc.dailyMax ?? 15; $('#rMessages').value = (rc.messages || []).join('\n'); updateRecLabels();
   // Ustawienia
   $$('input[name=provider]').forEach(r => r.checked = (r.value === settings.provider));
   $('#model').value = settings.model || ''; $('#maxTokens').value = settings.maxTokens || 320; $('#bookingLink').value = settings.bookingLink || '';
@@ -248,6 +248,8 @@ if ($('#addBl')) $('#addBl').addEventListener('click', () => { const v = $('#blI
 $$('#rtMin, #rtMax').forEach(el => el.addEventListener('input', updateRtLabels));
 $$('#qhStart, #qhEnd').forEach(el => el.addEventListener('input', updateQhDial));
 if ($('#flValue')) $('#flValue').addEventListener('input', updateFlLabel);
+function updateRecLabels() { if ($('#rMinL')) $('#rMinL').textContent = $('#rMin').value || '0'; if ($('#rMaxL')) $('#rMaxL').textContent = $('#rMax').value || '0'; }
+$$('#rMin, #rMax').forEach(el => el.addEventListener('input', updateRecLabels));
 
 // ---------- AI Helper + dzwonek ----------
 if ($('#aiHelperBtn')) $('#aiHelperBtn').addEventListener('click', () => { const o = $('#tutorialOverlay'); if (o) o.classList.remove('hidden'); });
@@ -410,6 +412,10 @@ function crmSection(cls, title, rows) {
 async function loadAnalytics() {
   const a = await api('/analytics');
   $('#statCards').innerHTML = statCardsHtml(a);
+  if ($('#igInsights')) $('#igInsights').innerHTML = IG_METRICS.map((m, i) => mcard(m[0], '0', m[1], i, '—')).join('');
+  if ($('#igOverview')) $('#igOverview').innerHTML = OV.map(l => `<div class="ov-tile"><div class="ot-l">${l}</div><div class="ot-n">0</div><div class="ot-d"></div></div>`).join('');
+  if ($('#dayReach')) $('#dayReach').innerHTML = (a.series || []).map(() => '<div class="dr-col" style="height:3px"></div>').join('');
+  if ($('#dayAxis') && a.series && a.series.length) $('#dayAxis').innerHTML = `<span>${a.series[0].day}</span><span>${a.series[a.series.length - 1].day}</span>`;
   if ($('#attrCards')) $('#attrCards').innerHTML =
     `<div class="stat"><div class="num">0</div><div class="lbl">Punkty styku</div></div>`
     + `<div class="stat"><div class="num">0</div><div class="lbl">Aktywne źródła</div></div>`
@@ -450,6 +456,8 @@ const SPARK_PATHS = [
   'M0,36 C16,20 32,26 50,16 C70,6 86,22 100,12',
   'M0,28 C18,30 30,34 50,22 C70,10 82,16 100,20',
 ];
+const IG_METRICS = [['Obserwujący', '#3ecf8e'], ['Zasięg', '#22d3ee'], ['Wyświetlenia', '#8b7bff'], ['Wizyty profilu', '#ff9d4d'], ['Interakcje', '#ff6b9d'], ['Polubienia', '#ff5b7a'], ['Komentarze', '#5b9dff'], ['Udostępnienia', '#8b7bff'], ['Zapisane', '#3ecf8e'], ['Odpowiedzi na story', '#ff9d4d'], ['Kliknięcia WWW', '#2dd4bf'], ['Zaangażowani', '#a78bfa']];
+const OV = ['Zasięg', 'Wyświetlenia', 'Zaangażowani', 'Polubienia', 'Komentarze', 'Udostępnienia', 'Zapisane', 'Odpowiedzi', 'Reposty', 'Interakcje', 'Wizyty profilu', 'Kliknięcia WWW'];
 function spark(color, i) {
   const p = SPARK_PATHS[i % SPARK_PATHS.length];
   return `<svg class="spark" viewBox="0 0 100 48" preserveAspectRatio="none"><path class="line" d="${p}" style="stroke:${color};filter:drop-shadow(0 0 6px ${color}88)"/></svg>`;
