@@ -75,8 +75,31 @@ function defaultSettings() {
       quietHours: { enabled: true, start: '23:30', end: '06:30' },
       skipBigAccounts: true,
       commentToDm: { keyword: 'oferta', dm: 'jesteś? widziałem twój komentarz 🙂', replyToComment: true, publicReply: 'dzięki, zerknij na dm 🙂' },
-      recovery: { enabled: false, dailyMin: 5, dailyMax: 15, messages: ['jesteś?', 'wracam, bo coś mi chodziło po głowie odnośnie twojego gabinetu'] },
-      coldOutreach: { enabled: false, dailyLimit: 40, qualifier: 'Czy ten profil prowadzi gabinet kosmetyczny lub medycyny estetycznej (np. makijaż permanentny, depilacja laserowa, kosmetologia)?', sources: [] },
+      recovery: { enabled: false, dailyMin: 5, dailyMax: 15, messages: ['jesteś?', 'wracam, bo coś mi chodziło po głowie odnośnie twojego gabinetu', 'hej, robimy niedługo darmowy webinar o pozyskiwaniu klientek, wpadniesz?'] },
+      coldOutreach: {
+        enabled: false,
+        dailyLimit: 40,
+        rampUp: true,            // start niski, +10 co 2-3 dni (zgodnie z wideo)
+        startDaily: 30,
+        overwriteQualification: false, // gdy true: pisz do wszystkich z listy (omija kwalifikację) — zwykle OFF
+        qualifier: 'Czy ten profil prowadzi gabinet kosmetyczny lub medycyny estetycznej (np. makijaż permanentny, depilacja laserowa, kosmetologia)?',
+        sources: [],             // legacy: wolny tekst opisu źródeł
+        // Źródła wg modelu Setora: similar (znajdź podobne), followers (ostatni 1000 obs.), monitor (nowi obs.), likers (lajkujący Twój content)
+        sourceAccounts: [],      // [{ handle, type:'followers'|'monitor'|'similar'|'likers', note }]
+        likersAi: false,         // skanuj lajkujących co ~10 min i dodawaj do listy
+        message: 'hej, trafiłem na twój gabinet i robi wrażenie, mogę o coś zapytać?',
+        // Zaawansowana kwalifikacja AI (filtr profili PRZED napisaniem) — dokładnie jak w wideo odc 9
+        qualification: {
+          enabled: true,
+          skipMen: false, skipWomen: false,
+          skipNoPhoto: true, skipPrivate: true, skipEmptyBio: true,
+          skipNoLink: false, skipNoHighlights: false, skipNoPosts: true,
+          minFollowers: 0, maxFollowers: 0, minPosts: 0,
+          aiQuestion: 'Czy ten profil prowadzi gabinet beauty / medycyny estetycznej (gabinet kosmetyczny, PMU, laser, kosmetologia)?',
+          skipUncertain: true,        // pomijaj profile, co do których AI nie jest pewne
+          filterIncomingDm: true,     // filtruj nowe DM zanim AI odpisze (nie pisz do znajomych)
+        },
+      },
       products: [],
       currency: 'PLN',
       ab: {
@@ -122,6 +145,15 @@ export function load() {
   // dopełnij brakujące pod-pola config (np. nowe funkcje jak ab) i persony — kompatybilność przy aktualizacjach
   if (db.settings.config) { const dc = d.config || {}; for (const k of Object.keys(dc)) if (db.settings.config[k] === undefined) db.settings.config[k] = dc[k]; }
   if (db.settings.persona) { const dp = d.persona || {}; for (const k of Object.keys(dp)) if (db.settings.persona[k] === undefined) db.settings.persona[k] = dp[k]; }
+  // dopełnij głębsze pod-pola (coldOutreach + jego qualification, recovery, commentToDm) — kompatybilność przy aktualizacjach
+  const mergeDeep = (obj, def) => { if (!obj || !def) return; for (const k of Object.keys(def)) { if (obj[k] === undefined) obj[k] = def[k]; else if (def[k] && typeof def[k] === 'object' && !Array.isArray(def[k])) mergeDeep(obj[k], def[k]); } };
+  if (db.settings.config) {
+    mergeDeep(db.settings.config.coldOutreach, (d.config || {}).coldOutreach);
+    mergeDeep(db.settings.config.recovery, (d.config || {}).recovery);
+    mergeDeep(db.settings.config.commentToDm, (d.config || {}).commentToDm);
+    mergeDeep(db.settings.config.quietHours, (d.config || {}).quietHours);
+    mergeDeep(db.settings.config.ab, (d.config || {}).ab);
+  }
   // produkcyjny fallback ze zmiennych środowiskowych (hosting bez trwałego dysku)
   if (process.env.AI_API_KEY && !db.settings.apiKey) db.settings.apiKey = process.env.AI_API_KEY;
   if (process.env.AI_PROVIDER) db.settings.provider = process.env.AI_PROVIDER;
@@ -302,6 +334,16 @@ export function deleteConversation(id) {
   save();
 }
 
+// Cofnij rozmowę do wybranej wiadomości (zostaw pierwsze keep wiadomości) — do testowania od konkretnego momentu.
+export function truncateConversation(id, keep) {
+  const conv = getConversation(id);
+  if (!conv) return null;
+  conv.messages = conv.messages.slice(0, Math.max(0, keep));
+  conv.updatedAt = Date.now();
+  save();
+  return conv;
+}
+
 export function analytics() {
   const convs = load().conversations;
   const stages = ['zimny', 'cieply', 'goracy', 'skonwertowany', 'semi_dq', 'dq'];
@@ -312,15 +354,32 @@ export function analytics() {
     if (c.booked) booked++;
   }
   const total = convs.length;
+  // "rozpoczęte" rozmowy = lead odpisał (>=2 wiadomości). To metryka, na którą patrzymy wg wideo (nie "wysłane").
+  const responded = convs.filter(c => (c.messages || []).length >= 2).length;
   const now = new Date();
   const fmt = d => String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0');
   const series = [];
-  for (let i = 13; i >= 0; i--) { const d = new Date(now); d.setDate(now.getDate() - i); series.push({ day: fmt(d), count: 0 }); }
-  for (const c of convs) { const s = series.find(x => x.day === fmt(new Date(c.createdAt || Date.now()))); if (s) s.count++; }
+  for (let i = 13; i >= 0; i--) { const d = new Date(now); d.setDate(now.getDate() - i); series.push({ day: fmt(d), count: 0, conv: 0, rate: 0 }); }
+  for (const c of convs) {
+    const key = fmt(new Date(c.createdAt || Date.now()));
+    const s = series.find(x => x.day === key);
+    if (s) { s.count++; if (c.stage === 'skonwertowany' || c.booked) s.conv++; }
+  }
+  for (const s of series) s.rate = s.count ? Math.round((s.conv / s.count) * 1000) / 10 : 0;
+  // wykrycie "piku nowicjusza": średnia konwersja pierwszych dni z ruchem vs ostatnich
+  const withTraffic = series.filter(s => s.count > 0);
+  let newbiePeak = false;
+  if (withTraffic.length >= 6) {
+    const head = withTraffic.slice(0, Math.ceil(withTraffic.length / 3));
+    const tail = withTraffic.slice(-Math.ceil(withTraffic.length / 3));
+    const avg = arr => arr.reduce((a, b) => a + b.rate, 0) / (arr.length || 1);
+    if (avg(head) > avg(tail) * 1.3 && avg(head) > 0) newbiePeak = true;
+  }
   return {
-    total, booked, byStage,
+    total, booked, byStage, responded,
     conversion: total ? Math.round((byStage.skonwertowany / total) * 1000) / 10 : 0,
+    convFromResponded: responded ? Math.round((byStage.skonwertowany / responded) * 1000) / 10 : 0,
     konwersje: byStage.skonwertowany, kontakty: total, obserwujacy: null, wizyty: null,
-    series,
+    series, newbiePeak,
   };
 }

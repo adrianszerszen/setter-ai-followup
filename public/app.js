@@ -30,7 +30,19 @@ $$('.nav-item[data-view], .nav-subitem[data-view]').forEach(b => b.addEventListe
 $$('.nav-parent[data-toggle]').forEach(b => b.addEventListener('click', () => {
   b.classList.toggle('open'); $('#sub-' + b.dataset.toggle).classList.toggle('open');
 }));
-$$('.qlink[data-go]').forEach(q => q.addEventListener('click', () => showView(q.dataset.go)));
+// delegacja: każdy element z data-go przełącza widok (skróty na Panelu, linki w Akademii)
+document.addEventListener('click', e => { const t = e.target.closest('[data-go]'); if (t) { e.preventDefault(); showView(t.dataset.go); } });
+
+// ---------- Samouczek (modal) ----------
+if ($('#openTutorial')) $('#openTutorial').addEventListener('click', () => $('#tutorialOverlay').classList.remove('hidden'));
+if ($('#closeTutorial')) $('#closeTutorial').addEventListener('click', () => $('#tutorialOverlay').classList.add('hidden'));
+if ($('#tutorialOverlay')) $('#tutorialOverlay').addEventListener('click', e => { if (e.target.id === 'tutorialOverlay') e.currentTarget.classList.add('hidden'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = $('#tutorialOverlay'); if (o) o.classList.add('hidden'); } });
+$$('.copybtn').forEach(b => b.addEventListener('click', async () => {
+  const el = $('#' + b.dataset.copy); if (!el) return;
+  try { await navigator.clipboard.writeText(el.textContent); const o = b.textContent; b.textContent = 'skopiowano ✓'; setTimeout(() => b.textContent = o, 1500); }
+  catch { const r = document.createRange(); r.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); }
+}));
 
 // tabs (Osoba)
 $$('#osobaTabs .tab').forEach(t => t.addEventListener('click', () => {
@@ -49,8 +61,19 @@ async function loadSettings() {
   renderLm(p.leadMagnets || []); $('#pKryteria').value = p.kryteriaDQ || '';
   // Komentarze
   const cd = c.commentToDm || {}; $('#cKeyword').value = cd.keyword || ''; $('#cDm').value = cd.dm || ''; $('#cReply').checked = !!cd.replyToComment; $('#cPublic').value = cd.publicReply || '';
-  // Zimny
-  const co = c.coldOutreach || {}; $('#zEnabled').checked = !!co.enabled; $('#zLimit').value = co.dailyLimit || 40; $('#zQualifier').value = co.qualifier || ''; $('#zSources').value = (co.sources || []).join('\n');
+  // Zimny zasięg (pełny moduł)
+  const co = c.coldOutreach || {}; const zq = co.qualification || {};
+  $('#zEnabled').checked = !!co.enabled; $('#zLimit').value = co.dailyLimit ?? 40;
+  $('#zRampUp').checked = !!co.rampUp; $('#zStartDaily').value = co.startDaily ?? 30;
+  $('#zOverwrite').checked = !!co.overwriteQualification; $('#zMessage').value = co.message || '';
+  $('#zLikersAi').checked = !!co.likersAi; $('#zSources').value = (co.sources || []).join('\n');
+  zSourceAccounts = (co.sourceAccounts || []).slice(); renderSourceAccounts();
+  $('#zqEnabled').checked = zq.enabled !== false; $('#zqAi').value = zq.aiQuestion || co.qualifier || '';
+  $('#zqSkipMen').checked = !!zq.skipMen; $('#zqSkipWomen').checked = !!zq.skipWomen;
+  $('#zqNoPhoto').checked = !!zq.skipNoPhoto; $('#zqPrivate').checked = !!zq.skipPrivate; $('#zqEmptyBio').checked = !!zq.skipEmptyBio;
+  $('#zqNoLink').checked = !!zq.skipNoLink; $('#zqNoHighlights').checked = !!zq.skipNoHighlights; $('#zqNoPosts').checked = !!zq.skipNoPosts;
+  $('#zqMinF').value = zq.minFollowers ?? 0; $('#zqMaxF').value = zq.maxFollowers ?? 0; $('#zqMinP').value = zq.minPosts ?? 0;
+  $('#zqUncertain').checked = zq.skipUncertain !== false; $('#zqFilterDm').checked = zq.filterIncomingDm !== false;
   // Recovery
   const rc = c.recovery || {}; $('#rEnabled').checked = !!rc.enabled; $('#rMin').value = rc.dailyMin ?? 5; $('#rMax').value = rc.dailyMax ?? 15; $('#rMessages').value = (rc.messages || []).join('\n');
   // Ustawienia
@@ -105,10 +128,45 @@ $('#saveKomentarze').addEventListener('click', async () => {
   }}}});
   flash('#komSaved'); await loadSettings();
 });
+// Zimny zasięg: zakładki + źródła
+let zSourceAccounts = [];
+const SRC_TYPE = { followers: 'ostatni 1000 obs.', monitor: 'monitor nowych', similar: 'podobne konta', likers: 'lajkujący' };
+$$('#zimnyTabs .tab').forEach(t => t.addEventListener('click', () => {
+  $$('#zimnyTabs .tab').forEach(x => x.classList.toggle('active', x === t));
+  $$('#view-zimny .zpane').forEach(p => p.classList.toggle('active', p.dataset.zpane === t.dataset.ztab));
+}));
+function renderSourceAccounts() {
+  const el = $('#zSourceList'); if (!el) return;
+  el.innerHTML = zSourceAccounts.length
+    ? zSourceAccounts.map((s, i) => `<div class="list-item"><div><b>${esc(s.handle)}</b> <span class="badge zimny">${SRC_TYPE[s.type] || s.type}</span></div><button class="btn danger sm" data-srcdel="${i}">usuń</button></div>`).join('')
+    : '<p class="muted small">Brak źródeł. Dodaj kilkanaście kont poniżej.</p>';
+  $$('#zSourceList [data-srcdel]').forEach(b => b.addEventListener('click', () => { zSourceAccounts.splice(+b.dataset.srcdel, 1); renderSourceAccounts(); }));
+}
+if ($('#addSrc')) $('#addSrc').addEventListener('click', () => {
+  const h = $('#zSrcHandle').value.trim(); if (!h) return;
+  zSourceAccounts.push({ handle: h, type: $('#zSrcType').value, note: '' }); $('#zSrcHandle').value = ''; renderSourceAccounts();
+});
 $('#saveZimny').addEventListener('click', async () => {
   await api('/settings', { method: 'POST', body: { config: { coldOutreach: {
-    enabled: $('#zEnabled').checked, dailyLimit: parseInt($('#zLimit').value) || 40, qualifier: $('#zQualifier').value,
+    enabled: $('#zEnabled').checked,
+    dailyLimit: parseInt($('#zLimit').value) || 40,
+    rampUp: $('#zRampUp').checked,
+    startDaily: parseInt($('#zStartDaily').value) || 30,
+    overwriteQualification: $('#zOverwrite').checked,
+    message: $('#zMessage').value,
+    likersAi: $('#zLikersAi').checked,
     sources: $('#zSources').value.split('\n').map(s => s.trim()).filter(Boolean),
+    sourceAccounts: zSourceAccounts,
+    qualifier: $('#zqAi').value, // kompatybilność ze starym polem
+    qualification: {
+      enabled: $('#zqEnabled').checked,
+      aiQuestion: $('#zqAi').value,
+      skipMen: $('#zqSkipMen').checked, skipWomen: $('#zqSkipWomen').checked,
+      skipNoPhoto: $('#zqNoPhoto').checked, skipPrivate: $('#zqPrivate').checked, skipEmptyBio: $('#zqEmptyBio').checked,
+      skipNoLink: $('#zqNoLink').checked, skipNoHighlights: $('#zqNoHighlights').checked, skipNoPosts: $('#zqNoPosts').checked,
+      minFollowers: parseInt($('#zqMinF').value) || 0, maxFollowers: parseInt($('#zqMaxF').value) || 0, minPosts: parseInt($('#zqMinP').value) || 0,
+      skipUncertain: $('#zqUncertain').checked, filterIncomingDm: $('#zqFilterDm').checked,
+    },
   }}}});
   flash('#zimnySaved'); await loadSettings();
 });
@@ -174,7 +232,16 @@ function fillOpenerSelect(list) { $('#openerSelect').innerHTML = list.map(o => `
 // ---------- gamification ----------
 function getXp() { return parseInt(localStorage.getItem('setterXp') || '0'); }
 function addXp(n) { localStorage.setItem('setterXp', String(getXp() + n)); updateGamification(); }
-function updateGamification() { const xp = getXp(); $('#xpNum').textContent = xp; $('#lvlNum').textContent = Math.floor(xp / 10) + 1; }
+function updateGamification() {
+  const xp = getXp(); const lvl = Math.floor(xp / 10) + 1;
+  $('#xpNum').textContent = xp; $('#lvlNum').textContent = lvl;
+  const g = $('#lvlGoal');
+  if (g) {
+    if (lvl >= 12) g.innerHTML = '✅ poziom 12 osiągnięty, instrukcje zwykle gotowe na żywo';
+    else { const left = (12 - lvl) * 10 - (xp % 10); g.innerHTML = 'do poziomu 12 jeszcze ~' + left + ' PD (ok. ' + left + ' wiadomości testowych)'; }
+  }
+  const pill = $('#lvlPill'); if (pill) pill.classList.toggle('ready', lvl >= 12);
+}
 
 // ---------- test chat ----------
 $$('input[name=startmode]').forEach(r => r.addEventListener('change', () => {
@@ -206,10 +273,23 @@ function renderChat(conv) {
   let head = '';
   if (conv.contactNote) head += `<div class="memo">🧠 <b>pamięć:</b> ${esc(conv.contactNote)}</div>`;
   if (conv.followups && conv.followups.length) head += `<div class="memo fu">⏰ <b>zaplanowane follow-upy:</b> ${conv.followups.map(esc).join(' · ')}</div>`;
-  w.innerHTML = head + conv.messages.map(msgHtml).join('');
+  w.innerHTML = head + conv.messages.map((m, i) => msgHtml(m, i)).join('');
   w.scrollTop = w.scrollHeight; setStage(conv.stage);
+  $$('#chatWindow [data-regen]').forEach(b => b.addEventListener('click', () => regenerateFrom(parseInt(b.dataset.regen))));
 }
-function msgHtml(m) { const s = m.role === 'assistant'; return `<div class="msg ${s ? 'setter' : 'klient'}"><span class="who">${s ? 'setter' : 'klientka'}</span>${esc(m.text)}</div>`; }
+function msgHtml(m, i) {
+  const s = m.role === 'assistant';
+  // przycisk cofnięcia/regeneracji: setter -> usuń od tej wiadomości i wygeneruj ponownie; klient -> zostaw do tej i wygeneruj odpowiedź
+  const keep = (typeof i === 'number') ? (s ? i : i + 1) : null;
+  const btn = (keep !== null) ? `<button class="regen" data-regen="${keep}" title="cofnij tu i wygeneruj odpowiedź na nowo (jak ołówek w Setorze)">↻</button>` : '';
+  return `<div class="msg ${s ? 'setter' : 'klient'}"><span class="who">${s ? 'setter' : 'klientka'}</span>${esc(m.text)}${btn}</div>`;
+}
+async function regenerateFrom(keep) {
+  if (!currentConvId) return;
+  showTyping();
+  try { const conv = await api('/conversations/' + currentConvId + '/regenerate', { method: 'POST', body: { keep } }); renderChat(conv); }
+  catch (e) { renderChatError(e); }
+}
 function appendMsg(m) { const w = $('#chatWindow'); if (w.querySelector('.chat-empty')) w.innerHTML = ''; w.insertAdjacentHTML('beforeend', msgHtml(m)); w.scrollTop = w.scrollHeight; }
 function showTyping() { const w = $('#chatWindow'); if (w.querySelector('.chat-empty')) w.innerHTML = ''; w.insertAdjacentHTML('beforeend', '<div class="typing" id="typing">setter pisze…</div>'); w.scrollTop = w.scrollHeight; }
 function setStage(stage) { const b = $('#stageBadge'); if (!stage) { b.classList.add('hidden'); return; } b.className = 'badge ' + stage; b.textContent = 'etap: ' + (STAGE_LABEL[stage] || stage); b.classList.remove('hidden'); }
@@ -246,18 +326,32 @@ async function loadAnalytics() {
   const a = await api('/analytics');
   $('#statCards').innerHTML = statCardsHtml(a);
   if ($('#chart')) $('#chart').innerHTML = chartHtml(a.series);
+  if ($('#convChart')) $('#convChart').innerHTML = convChartHtml(a.series);
+  if ($('#newbieNote')) $('#newbieNote').innerHTML = a.newbiePeak
+    ? '<div class="warn">📈 Wygląda na „pik nowicjusza”: konwersja na starcie jest sztucznie wysoka, bo najpierw odpisują najgorętsze leady. Spadnie do 50-70% i to będzie Twój realny poziom. To nie znaczy, że setter działa gorzej.</div>'
+    : '';
   const order = ['zimny', 'cieply', 'goracy', 'skonwertowany', 'semi_dq', 'dq'];
   const max = Math.max(1, ...order.map(s => a.byStage[s] || 0));
   $('#funnel').innerHTML = order.map(s => { const n = a.byStage[s] || 0; return `<div class="fbar"><div class="flabel">${STAGE_LABEL[s]}</div><div class="ftrack"><div class="ffill" style="width:${(n / max) * 100}%"></div></div><div class="fcount">${n}</div></div>`; }).join('');
 }
 function statCardsHtml(a) {
   const card = (num, lbl, sub) => `<div class="stat"><div class="num">${num}</div><div class="lbl">${lbl}</div>${sub ? `<div class="lbl" style="margin-top:4px;opacity:.7">${sub}</div>` : ''}</div>`;
-  return card(a.konwersje ?? 0, 'Konwersje') + card(a.kontakty ?? 0, 'Kontakty') + card(a.obserwujacy ?? '—', 'Obserwujący', 'wymaga IG') + card(a.wizyty ?? '—', 'Wizyty profilu', 'wymaga IG');
+  return card(a.konwersje ?? 0, 'Konwersje')
+    + card(a.responded ?? 0, 'Rozpoczęte', 'lead odpisał')
+    + card((a.convFromResponded ?? 0) + '%', 'Konwersja', 'z rozpoczętych')
+    + card(a.kontakty ?? 0, 'Kontakty')
+    + card(a.obserwujacy ?? 'b/d', 'Obserwujący', 'wymaga IG')
+    + card(a.wizyty ?? 'b/d', 'Wizyty profilu', 'wymaga IG');
 }
 function chartHtml(series) {
   if (!series || !series.length) return '';
   const max = Math.max(1, ...series.map(s => s.count));
-  return `<div class="chart">${series.map(s => `<div class="chart-col" title="${s.day}: ${s.count}"><div class="chart-bar" style="height:${Math.max(2, Math.round(s.count / max * 100))}%"></div><div class="chart-x">${s.day.slice(0, 2)}</div></div>`).join('')}</div>`;
+  return `<div class="chart">${series.map(s => `<div class="chart-col" title="${s.day}: ${s.count} rozmów"><div class="chart-bar" style="height:${Math.max(2, Math.round(s.count / max * 100))}%"></div><div class="chart-x">${s.day.slice(0, 2)}</div></div>`).join('')}</div>`;
+}
+function convChartHtml(series) {
+  if (!series || !series.length) return '';
+  const max = Math.max(1, ...series.map(s => s.rate || 0));
+  return `<div class="chart">${series.map(s => `<div class="chart-col" title="${s.day}: ${s.rate}% konwersji (${s.conv}/${s.count})"><div class="chart-bar conv" style="height:${Math.max(2, Math.round((s.rate || 0) / max * 100))}%"></div><div class="chart-x">${s.day.slice(0, 2)}</div></div>`).join('')}</div>`;
 }
 async function loadPanel() { const a = await api('/analytics'); $('#panelStats').innerHTML = statCardsHtml(a); }
 
@@ -266,6 +360,8 @@ let abData = null;
 async function loadAb() { abData = await api('/ab'); renderAb(); }
 function abCard(key, title, field, cfg, stats, winner, min) {
   const byId = Object.fromEntries((stats || []).map(s => [s.id, s]));
+  const totalStarted = (stats || []).reduce((a, s) => a + (s.started || 0), 0);
+  const anyButNotEnough = (stats || []).some(s => s.started > 0) && (stats || []).every(s => s.started < min);
   const vars = (cfg.variants || []).map(v => {
     const s = byId[v.id] || { started: 0, conv: 0 };
     const win = winner === v.id ? ' ⭐ zwycięzca' : '';
@@ -274,27 +370,54 @@ function abCard(key, title, field, cfg, stats, winner, min) {
       : `<input type="text" class="abv" data-k="${key}" data-id="${v.id}" data-f="content" value="${esc(v.content || '')}" />`;
     return `<div class="card" style="background:var(--panel2);margin:8px 0">
       <div class="row"><b>Wariant ${esc(v.label || v.id)}${win}</b>
-        <span class="badge ${s.started >= min ? 'goracy' : 'zimny'}">rozpoczęte: ${s.started}</span>
+        <span class="badge ${s.started >= min ? 'goracy' : 'zimny'}">rozpoczęte: ${s.started}/${min}</span>
         <span class="badge skonwertowany">konwersja: ${s.conv}%</span>
         <button class="btn danger sm" data-abdel="${key}:${v.id}">usuń</button></div>
       ${inputEl}
       <div class="row"><span class="muted small">ruch %</span><input type="number" min="0" max="100" class="abw" data-k="${key}" data-id="${v.id}" value="${v.weight || 0}" style="max-width:90px" /></div>
     </div>`;
   }).join('');
-  return `<div class="card"><div class="card-title">${title}</div>
+  const warn = anyButNotEnough ? `<div class="warn">⏳ Za mało danych. Zbierz min. ${min} <b>rozpoczętych</b> rozmów na wariant, zanim wyciągniesz wnioski (mniejsze liczby kłamią). Nie wyłączaj wariantu zbyt wcześnie.</div>` : '';
+  const winLine = winner ? `<div class="ok-banner">⭐ Zwycięzca: wariant ${winner}. Teraz 80% ruchu na niego i jego delikatne warianty, 20% na nowy, szalony pomysł. <b>Co działa, nie ruszaj.</b></div>` : '';
+  return `<div class="card"><div class="card-title">${title} <span class="muted small">· rozpoczętych łącznie: ${totalStarted}</span></div>
     <label class="radio"><input type="checkbox" class="aben" data-k="${key}" ${cfg.enabled ? 'checked' : ''}/> &nbsp;Włącz ten test (ruch rozdzielany automatycznie wg %)</label>
+    ${warn}${winLine}
     ${vars}
-    <div class="row"><button class="btn sm" data-abadd="${key}">+ dodaj wariant</button></div></div>`;
+    <div class="row"><button class="btn sm" data-abadd="${key}">+ dodaj wariant</button>${winner ? `<button class="btn sm" data-abdup="${key}">⭐ Duplikuj zwycięzcę (wariant wariantu)</button>` : ''}</div></div>`;
 }
 function renderAb() {
   const ab = abData.ab || {}, st = abData.stats || {}, min = st.minSample || 200;
   $('#abMin').textContent = min;
-  $('#abBody').innerHTML =
+  const guide = `<div class="card guide">
+    <div class="card-title">📏 Zasady testów A/B (z Akademii)</div>
+    <ul class="tight">
+      <li>Patrz na <b>rozpoczęte</b> rozmowy (odpowiedzi), nie na wysłane.</li>
+      <li><b>200-300</b> rozpoczętych na wariant, zanim ocenisz. Wcześniej nie ruszaj.</li>
+      <li>Wariant może mieć dobry % odpowiedzi, ale słabą konwersję na konsultację. Liczy się konwersja.</li>
+      <li><b>80/20</b>: gros ruchu na zwycięzcę i jego warianty, część na nowe pomysły. Co działa, nie ruszaj.</li>
+      <li>Wchodź tu <b>raz w tygodniu</b> (wpisz w kalendarz). Spadek % w czasie to norma (coraz zimniejsi obserwujący), nie wada.</li>
+    </ul></div>`;
+  $('#abBody').innerHTML = guide +
     abCard('openers', '✨ Openery A/B', 'content', ab.openers || { variants: [] }, st.openers, st.openerWinner, min) +
     abCard('script', '🧠 Skrypt A/B (cały proces)', 'instructions', ab.script || { variants: [] }, st.script, st.scriptWinner, min);
   $$('#abBody [data-abdel]').forEach(b => b.addEventListener('click', () => { const [k, id] = b.dataset.abdel.split(':'); abData.ab[k].variants = abData.ab[k].variants.filter(v => v.id !== id); saveAb(); }));
   $$('#abBody [data-abadd]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.abadd; collectAb(); const used = (abData.ab[k].variants || []).map(v => v.id); const id = 'ABCDEFGH'.split('').find(l => !used.includes(l)) || ('V' + used.length); abData.ab[k].variants.push({ id, label: id, weight: 0, content: '', instructions: '' }); saveAb(); }));
+  $$('#abBody [data-abdup]').forEach(b => b.addEventListener('click', () => duplicateWinner(b.dataset.abdup)));
   $$('#abBody .aben, #abBody .abv, #abBody .abw').forEach(el => el.addEventListener('change', () => saveAb()));
+}
+// Duplikuj zwycięzcę: klon treści zwycięzcy do nowego wariantu, ustaw 80/20 (zwycięzca 80, klon 20, reszta 0)
+function duplicateWinner(key) {
+  collectAb();
+  const st = abData.stats || {};
+  const winId = key === 'openers' ? st.openerWinner : st.scriptWinner;
+  const cfg = abData.ab[key]; if (!cfg || !winId) return;
+  const win = (cfg.variants || []).find(v => v.id === winId); if (!win) return;
+  const used = cfg.variants.map(v => v.id);
+  const id = 'ABCDEFGHIJ'.split('').find(l => !used.includes(l)) || ('V' + used.length);
+  cfg.variants.push({ id, label: id, weight: 20, content: win.content || '', instructions: win.instructions || '' });
+  cfg.variants.forEach(v => { v.weight = v.id === winId ? 80 : (v.id === id ? 20 : 0); });
+  cfg.enabled = true;
+  saveAb().then(() => alert('Utworzono wariant ' + id + ' jako kopię zwycięzcy ' + winId + '. Wprowadź drobną zmianę (np. dodaj „???” albo serduszko) i obserwuj, czy przebije zwycięzcę. Ruch ustawiony 80/20.'));
 }
 function collectAb() {
   ['openers', 'script'].forEach(k => {
@@ -333,7 +456,8 @@ function flowCardHtml(f, fi) {
       <button class="btn danger sm" data-fldel="${fi}">usuń flow</button></div>
     <div class="row"><span class="muted small">trigger</span>
       <select class="fl-trig" data-fi="${fi}"><option value="comment" ${f.trigger.type === 'comment' ? 'selected' : ''}>Komentarz pod postem</option><option value="dm_keyword" ${f.trigger.type === 'dm_keyword' ? 'selected' : ''}>Słowo kluczowe w DM</option></select>
-      <input type="text" class="fl-kw" data-fi="${fi}" placeholder="słowo kluczowe (puste = wszystkie)" value="${esc(f.trigger.keyword || '')}" style="max-width:240px"/></div>
+      <input type="text" class="fl-kw" data-fi="${fi}" placeholder="słowo kluczowe (puste = wszystkie)" value="${esc(f.trigger.keyword || '')}" style="max-width:240px"/>
+      <select class="fl-apply" data-fi="${fi}"><option value="all" ${(f.trigger.applyTo || 'all') === 'all' ? 'selected' : ''}>wszystkie posty</option><option value="next" ${f.trigger.applyTo === 'next' ? 'selected' : ''}>następny post</option><option value="specific" ${f.trigger.applyTo === 'specific' ? 'selected' : ''}>konkretny post</option></select></div>
     <div style="margin:12px 0">${nodes}</div>
     <div class="row"><select class="fl-addtype" data-fi="${fi}">${Object.entries(NODE_TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select><button class="btn sm" data-fladd="${fi}">+ dodaj krok</button></div>
   </div>`;
@@ -344,7 +468,7 @@ function renderFlows() {
   $$('#flowsBody [data-fladd]').forEach(b => b.addEventListener('click', () => { collectFlows(); const fi = +b.dataset.fladd; const t = $(`#flowsBody .fl-addtype[data-fi="${fi}"]`).value; flowsData[fi].nodes.push(defaultNode(t)); saveFlows(); }));
   $$('#flowsBody [data-nddel]').forEach(b => b.addEventListener('click', () => { collectFlows(); const [fi, ni] = b.dataset.nddel.split(':').map(Number); flowsData[fi].nodes.splice(ni, 1); saveFlows(); }));
   $$('#flowsBody [data-flexport]').forEach(b => b.addEventListener('click', () => { collectFlows(); exportFlow(flowsData[+b.dataset.flexport]); }));
-  $$('#flowsBody .fl-name, #flowsBody .fl-active, #flowsBody .fl-trig, #flowsBody .fl-kw, #flowsBody .nd').forEach(el => el.addEventListener('change', saveFlows));
+  $$('#flowsBody .fl-name, #flowsBody .fl-active, #flowsBody .fl-trig, #flowsBody .fl-kw, #flowsBody .fl-apply, #flowsBody .nd').forEach(el => el.addEventListener('change', saveFlows));
 }
 function collectFlows() {
   if (!flowsData) return;
@@ -353,6 +477,7 @@ function collectFlows() {
     const ac = $(`#flowsBody .fl-active[data-fi="${fi}"]`); if (ac) f.active = ac.checked;
     const tt = $(`#flowsBody .fl-trig[data-fi="${fi}"]`); if (tt) f.trigger.type = tt.value;
     const kw = $(`#flowsBody .fl-kw[data-fi="${fi}"]`); if (kw) f.trigger.keyword = kw.value;
+    const ap = $(`#flowsBody .fl-apply[data-fi="${fi}"]`); if (ap) f.trigger.applyTo = ap.value;
     (f.nodes || []).forEach((n, ni) => { $$(`#flowsBody .nd[data-fi="${fi}"][data-ni="${ni}"]`).forEach(el => { n[el.dataset.f] = el.type === 'number' ? (parseInt(el.value) || 0) : el.value; }); });
   });
 }
@@ -360,6 +485,24 @@ async function saveFlows() { collectFlows(); await api('/flows', { method: 'POST
 function exportFlow(f) { const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (f.name || 'flow') + '.json'; a.click(); }
 $('#newFlow').addEventListener('click', () => { if (!flowsData) flowsData = []; else collectFlows(); flowsData.push({ id: 'f' + Date.now(), name: 'Nowy flow', active: false, trigger: { type: 'comment', keyword: '' }, nodes: [defaultNode('welcome')] }); saveFlows(); });
 $('#importFlow').addEventListener('click', () => { const t = prompt('Wklej JSON flow:'); if (!t) return; try { const f = JSON.parse(t); if (!flowsData) flowsData = []; flowsData.push(f); saveFlows(); } catch (e) { alert('Niepoprawny JSON'); } });
+// Szablon Lead Magnet (wg wideo odc 9, ścieżka trenera, dopasowana do gabinetu)
+function leadMagnetTemplate() {
+  return {
+    id: 'f' + Date.now(), name: 'Lead Magnet (przewodnik dla gabinetu)', active: false,
+    trigger: { type: 'comment', keyword: 'przewodnik', applyTo: 'all' },
+    nodes: [
+      { type: 'welcome', message: 'cześć 🙂 kliknij przycisk, żeby dostać przewodnik jak zapełnić grafik gabinetu. pamiętaj, musisz obserwować konto, żeby dostać dostęp', button: 'CHCĘ TO' },
+      { type: 'followers_check', ifNot: 'zaobserwuj proszę konto, żeby dostać przewodnik, i kliknij ponownie' },
+      { type: 'lead_magnet', resource: 'Darmowy przewodnik: Jak zapełnić grafik gabinetu w 30 dni' },
+      { type: 'send_dm', message: 'swoją drogą, jak u ciebie teraz z obłożeniem grafiku?' },
+      { type: 'delay', hours: 2 },
+      { type: 'followup', message: 'cześć, doszła moja wiadomość?' },
+      { type: 'delay', hours: 4 },
+      { type: 'followup', message: '??' },
+    ],
+  };
+}
+if ($('#tplFlow')) $('#tplFlow').addEventListener('click', () => { if (!flowsData) flowsData = []; else collectFlows(); flowsData.push(leadMagnetTemplate()); saveFlows(); });
 
 // ---------- Historia Live (instrukcje + wersje) ----------
 async function loadLive() {

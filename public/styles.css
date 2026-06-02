@@ -1,4 +1,4 @@
-/* Design 1:1 z Setor AI — shadcn/ui dark (neutral) + Inter + oklch */
+/* Design 1:1 z Setor AI, shadcn/ui dark (neutral) + Inter + oklch */
 :root{
   --bg:oklch(0.145 0 0);
   --panel:oklch(0.205 0 0);
@@ -121,7 +121,7 @@ textarea{resize:vertical}
 .kvrow{display:flex;gap:8px;align-items:center;margin:6px 0}
 .kvrow input{flex:1}
 
-/* STATS / FUNNEL — karty jak na dashboardzie Setora */
+/* STATS / FUNNEL, karty jak na dashboardzie Setora */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:14px 0}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
 .stat .num{font-size:30px;font-weight:600;letter-spacing:-.02em}
@@ -144,3 +144,58 @@ textarea{resize:vertical}
 .qlink{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer}
 .qlink:hover{border-color:var(--panel3)}
 .qlink .qt{font-weight:600;font-size:13.5px} .qlink .qd{color:var(--muted);font-size:12.5px;margin-top:4px}
+
+/* ===== Dodatki: Samouczek, Akademia, Zimny zasięg, A/B, regenerate ===== */
+
+/* help button (?) + level ready */
+.help-btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);width:26px;height:26px;border-radius:50%;cursor:pointer;font-weight:700;font-size:14px;line-height:1;vertical-align:middle;margin-left:8px}
+.help-btn:hover{background:var(--panel3)}
+.pill.ready{border-color:var(--green);color:#5ee08e}
+
+/* modal / overlay (Samouczek) */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:50;padding:24px}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:780px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+.modal-head h2{margin:0;font-size:16px}
+.modal-body{padding:18px 20px;overflow-y:auto}
+.modal-body h3{margin:18px 0 8px}
+.modal-body ul,.modal-body ol{margin:8px 0;padding-left:20px;line-height:1.6}
+.modal-body li{margin:5px 0}
+
+/* copyable diagnostic prompts */
+.copybox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0}
+.copyhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.copybox pre{white-space:pre-wrap;word-wrap:break-word;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;margin:0;color:var(--text)}
+
+/* Akademia */
+.akad{display:flex;flex-direction:column;gap:10px}
+.lesson{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.lesson>summary{list-style:none;cursor:pointer;padding:15px 18px;font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:12px}
+.lesson>summary::-webkit-details-marker{display:none}
+.lesson>summary:hover{background:var(--panel2)}
+.lesson[open]>summary{border-bottom:1px solid var(--line)}
+.lnum{background:var(--primary);color:var(--primary-fg);width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none;font-size:13px}
+.lbody{padding:8px 20px 18px}
+.lbody ul,.lbody ol{line-height:1.6;padding-left:20px}
+.lbody li{margin:5px 0}
+.lbody a,.guide a{color:var(--blue);cursor:pointer;text-decoration:underline}
+.todo{background:var(--panel2);border-left:3px solid var(--green);border-radius:8px;padding:10px 13px;margin-top:12px;font-size:13px}
+
+/* guidance cards / banners / tight lists */
+.ok-banner{background:oklch(0.3 0.07 150);border:1px solid oklch(0.42 0.09 150);color:#bdf0d0;padding:10px 13px;border-radius:10px;margin:10px 0;font-size:12.5px}
+ul.tight{margin:6px 0;padding-left:20px;line-height:1.55}
+ul.tight li{margin:4px 0}
+
+/* qualifier checkbox grid */
+.checkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px 16px;margin:8px 0}
+
+/* cold outreach panes */
+.zpane{display:none}
+.zpane.active{display:block}
+
+/* conversion chart + per-message regenerate */
+.chart-bar.conv{background:linear-gradient(180deg,#5ee08e,#2e9e63)}
+.msg{position:relative}
+.msg .regen{margin-left:8px;background:transparent;border:0;color:inherit;opacity:.32;cursor:pointer;font-size:13px;padding:0 2px;vertical-align:middle}
+.msg:hover .regen{opacity:.9}
+.msg .regen:hover{transform:scale(1.2)}

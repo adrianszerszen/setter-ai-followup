@@ -111,6 +111,33 @@ app.post('/api/conversations/:id/message', async (req, res) => {
   res.json(store.getConversation(conv.id));
 });
 
+// ---- COFNIJ + WYGENERUJ PONOWNIE (pencil/regenerate jak w Setorze) ----
+// body: { keep: N }  -> zostawia N pierwszych wiadomości; jeśli ostatnia jest od leada, generuje nową odpowiedź settera
+app.post('/api/conversations/:id/regenerate', async (req, res) => {
+  const conv0 = store.getConversation(req.params.id);
+  if (!conv0) return res.status(404).json({ error: 'nie znaleziono' });
+  const keep = Math.max(0, parseInt(req.body && req.body.keep) || 0);
+  store.truncateConversation(conv0.id, keep);
+  let conv = store.getConversation(conv0.id);
+  const last = conv.messages[conv.messages.length - 1];
+  if (last && last.role === 'user') {
+    const settings = store.getSettings();
+    let reply;
+    try {
+      reply = await generateReply({
+        provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
+        maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(conv) + memo(conv),
+        messages: conv.messages,
+      });
+    } catch (e) {
+      return res.status(apiErrStatus(e)).json({ error: apiErrMsg(e), conversation: store.getConversation(conv.id) });
+    }
+    store.addMessage(conv.id, 'assistant', noLongDashes(reply));
+    await analyzeAndSave(settings, conv.id);
+  }
+  res.json(store.getConversation(conv.id));
+});
+
 // ---- ANALITYKA ----
 app.get('/api/analytics', (req, res) => res.json(store.analytics()));
 

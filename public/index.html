@@ -16,6 +16,7 @@
     <nav>
       <button class="nav-item active" data-view="panel">📊 Panel</button>
       <button class="nav-item" data-view="rozmowy">🗂️ Rozmowy</button>
+      <button class="nav-item" data-view="akademia">🎓 Akademia</button>
 
       <div class="nav-group-label">Setter</div>
       <button class="nav-item" data-view="osoba">👤 Osoba</button>
@@ -67,6 +68,144 @@
       <div id="convList" class="list"></div>
     </section>
 
+    <!-- AKADEMIA -->
+    <section class="view" id="view-akademia">
+      <h1 class="page-title">Akademia Setter AI</h1>
+      <p class="page-sub">Cała wiedza z 9 szkoleń CTO, przełożona na konkretne kroki dla FollowUP. Przerób po kolei, a setter będzie „obrzydliwie skuteczny”. Każda lekcja ma sekcję <b>co zrobić</b>.</p>
+      <div class="akad">
+
+        <details class="lesson" open>
+          <summary><span class="lnum">1</span> Testy A/B wiadomości powitalnych</summary>
+          <div class="lbody">
+            <p><b>Po co:</b> ta jedna funkcja potrafi podwoić, a nawet potroić wyniki z tego samego ruchu. Wysyłamy raz wiadomość A, raz B (potem C, D), na zmianę, i patrzymy która ma więcej <b>rozpoczętych rozmów</b> i wyższą <b>konwersję na konsultację</b>.</p>
+            <ul>
+              <li><b>Patrz na kolumnę „rozpoczęte” (odpowiedzi), nie „wysłane”.</b> To rozmowy, w których ktoś odpisał.</li>
+              <li><b>Zasada 200-300:</b> nie wyciągaj żadnych wniosków, dopóki wariant nie ma min. 200 rozpoczętych rozmów. Mniejsze liczby kłamią (jedna konwersja krzywi wynik).</li>
+              <li><b>Wiadomość wpływa też na konwersję, nie tylko na % odpowiedzi.</b> Trzy openery mogą mieć po 37% odpowiedzi, a różną konwersję na konsultację (np. 1,5% vs 3%). Wygrywa ten z najwyższą konwersją.</li>
+              <li><b>Ślepota banerowa:</b> „hej, dzięki za follow…” ludzie widzieli 1000 razy i ignorują. Działają krótkie zaczepki: <i>poniżej 8 słów, z małej litery, luźne</i>, jakbyś pisał z kolejki po kawę.</li>
+              <li><b>Hook, nie pytanie. Nie zaczynaj od „hej”.</b> Zacznij od środka: „jesteś?”, „mogę o coś zapytać?”, „mogę być szczery?”, „mogę mieć feedback do twojego gabinetu?”.</li>
+              <li><b>Nie kopiuj cudzych przykładów</b> (inni je skopiują i pula dostanie tę samą wiadomość). Wymyśl swoje.</li>
+              <li><b>Spadek % w czasie to norma</b> (piszesz do coraz zimniejszych obserwujących), nie wada settera. 65%→50%, 15%→7,5% to dobre wyniki.</li>
+              <li><b>Gdy masz zwycięzcę:</b> 80% ruchu na zwycięzcę i jego delikatne warianty (dodaj serduszko, „???”, usuń słowo), 20% na zupełnie nowe, szalone pomysły. Świętość: <i>co działa, nie ruszaj</i>.</li>
+              <li><b>Połącz opener ze skryptem</b> krytyczną regułą: gdy ktoś odpowie na zaczepkę „w stylu…”, daj 1 nieoczywisty komplement od „swoją drogą”, potem pytanie discovery. (To już jest w naszym mózgu AI.)</li>
+            </ul>
+            <div class="todo"><b>Co zrobić:</b> ustaw 2-3 swoje openery w <a data-go="openery">Wiadomości Powitalne A/B</a>, włącz test w <a data-go="ab">Testy A/B</a>, wpisz w kalendarz <b>cotygodniowy</b> przegląd testów.</div>
+          </div>
+        </details>
+
+        <details class="lesson">
+          <summary><span class="lnum">2</span> Co potrafi system i dlaczego to działa</summary>
+          <div class="lbody">
+            <ul>
+              <li>Setter działa <b>24/7</b>, czas odpowiedzi do 5 minut to dziś standard (dłużej = spadek konwersji, w niektórych niszach o kilkaset %).</li>
+              <li>Człowiek-setter domyka 4-7% rozmów; dobrze dostrojony system 8-15%.</li>
+              <li><b>Rozpoznaje znajomych i rodzinę</b> i nie próbuje im sprzedawać (chroni relacje i reputację). U nas: sekcja „sytuacje wyjątkowe” w mózgu.</li>
+              <li>Nie wysyła PDF i ucieka, tylko <b>domyka</b>: bada problem, kwalifikuje, umawia.</li>
+              <li>Największa wartość to nie „odpisywanie na DM”, tylko <b>maksymalizacja potencjału</b>: zimny zasięg + recovery + komentarze→DM.</li>
+              <li>Oficjalna integracja Meta = zero podawania haseł, brak ryzyka bana (gdy idzie przez API).</li>
+            </ul>
+            <div class="todo"><b>Co zrobić:</b> traktuj DM-y jak najdroższe aktywo. Uzupełnij <a data-go="osoba">Osobę</a> i podłącz <a data-go="instagram">Instagram</a>, żeby wszystkie 3 warstwy ruszyły na żywo.</div>
+          </div>
+        </details>
+
+        <details class="lesson">
+          <summary><span class="lnum">3</span> Panel testowy, mindset i samouczek</summary>
+          <div class="lbody">
+            <ul>
+              <li><b>Lewa strona = instrukcje, prawa = symulacja rozmowy.</b> Wszystko tu to bezpieczny test, nie rusza Instagrama. Zmiany zapisują się automatycznie.</li>
+              <li><b>Najpierw zobacz, jak działa „na czysto”</b> (bez instrukcji). System już prowadzi rozmowy w 70-80% tak jak chcesz, więc nie ucz go wszystkiego od nowa. Zrób 1 pełną rozmowę bez instrukcji i zanotuj 2-3 rzeczy do poprawy.</li>
+              <li><b>Mindset:</b> gdy setter się nie słucha, w 90%+ przypadków to wina nieprecyzyjnej instrukcji, nie systemu. AI nie jest „inteligentne” jak człowiek, ono <b>zgaduje</b>. Brak precyzji = zgadywanie = halucynacje.</li>
+              <li><b>Gamifikacja:</b> celuj w <b>poziom 12</b> (zwykle 2-3 h testowania). Wtedy instrukcje są zwykle gotowe na żywo.</li>
+              <li><b>Każdą zmianę testuj 3×</b> i w różnych rolach: klientka pozytywna, sceptyczna, agresywna. To daje „kuloodporne” instrukcje.</li>
+              <li><b>Push to Live</b> = zapis instrukcji do prawdziwych rozmów (u nas: „Zapisz na Live” + Historia wersji).</li>
+            </ul>
+            <div class="todo"><b>Co zrobić:</b> otwórz <a data-go="testchat">Testowy Czat</a>, kliknij <b>?</b> (Samouczek), zrób 1 rozmowę na czysto, nanieś 2-3 zmiany i przetestuj każdą 3×.</div>
+          </div>
+        </details>
+
+        <details class="lesson">
+          <summary><span class="lnum">4</span> Struktura i precyzja instrukcji</summary>
+          <div class="lbody">
+            <ul>
+              <li><b>Pisz jak do inteligentnego 12-latka:</b> prosto i precyzyjnie. Logika: „jeżeli X to Y, z wyjątkiem A i B”. Krótka reguła > długa instrukcja.</li>
+              <li><b>Przykłady to złoto.</b> Miej <b>min. 12 konkretnych przykładów wiadomości</b> w instrukcjach. Źle: „pisz krótko”. Dobrze: „jeśli rozmówca pisze 10 słów, odpisz maks. ~1,5× tyle”.</li>
+              <li><b>Wymuszaj zachowania</b> słowami „zawsze”, „musisz”, „zasada krytyczna”, „nigdy”. Ale stosuj je <b>tylko tam, gdzie konieczne</b>, bo nadmiar „zawsze/musisz” tworzy sprzeczności i setter zaczyna dziwaczeć.</li>
+              <li><b>Sztywne vs luźne:</b> „wyślij dokładnie jeden do jednego któryś z przykładów” = sztywno. Bez tego setter traktuje przykłady jak wzór i sam komponuje.</li>
+              <li><b>Bramki logiczne</b> sterują też etapem (np. nie nadawaj DQ/Semi-DQ, dopóki nie znasz X).</li>
+              <li><b>Porządek przez nagłówki #</b>: # styl, # początek rozmowy, # etap badania problemów, # kwalifikacja, # umawianie, # po umówieniu, # follow-upy, # sytuacje wyjątkowe. Pracuj <b>od góry do dołu</b> (początek rozmowy najważniejszy).</li>
+              <li><b>Nie rób „Frankensteina”</b>: nie doklejaj reguł na końcu w kółko. Edytuj właściwą sekcję, żeby górna instrukcja nie kłóciła się z dolną.</li>
+              <li><b>Nie wrzucaj zbędnego kontekstu</b> (całej oferty). Trzymaj to w osobnym dokumencie i dokładaj tylko to, co potrzebne, po jednej rzeczy, testując 3×.</li>
+            </ul>
+            <div class="todo"><b>Co zrobić:</b> w <a data-go="testchat">Testowym Czacie</a> dopracuj sekcje od góry. Min. 5 precyzyjnych reguł na każdy etap, z przykładami.</div>
+          </div>
+        </details>
+
+        <details class="lesson">
+          <summary><span class="lnum">5</span> Diagnozowanie błędów z pomocą AI</summary>
+          <div class="lbody">
+            <ul>
+              <li><b>Pisz prompty ręcznie.</b> NIE zlecaj pisania instrukcji AI (dostaniesz uśredniony zlepek z internetu i nie wyćwiczysz wyczucia). AI używaj do <b>diagnozy</b>, nie do pisania.</li>
+              <li><b>Dyktowanie (Whisper Flow):</b> szybciej nanosisz i testujesz; przykłady zawsze bierz w „cudzysłów”, a w szablonach zostaw „...”, które setter sam uzupełni.</li>
+              <li><b>3 prompty diagnostyczne</b> (wklej do ChatGPT/Gemini w trybie myślenia) masz gotowe w <b>Samouczku</b> (ikona ? w Testowym Czacie):
+                <ol>
+                  <li>znajdź, co powoduje konkretne zachowanie (np. „zawsze 6 follow-upów”),</li>
+                  <li>znajdź fragmenty zbyt mało precyzyjne (cytaty w oknie kodu, komentarze poza),</li>
+                  <li>znajdź sprzeczności logiczne.</li>
+                </ol>
+              </li>
+              <li><b>Unikaj „matematyki” w promptach.</b> AI liczy słabo; zamiast sztywnego liczenia słów daj wyczucie.</li>
+            </ul>
+            <div class="todo"><b>Co zrobić:</b> gdy coś nie działa, skopiuj instrukcje + jeden z 3 promptów z Samouczka i zdiagnozuj fragment, zamiast zgadywać.</div>
+          </div>
+        </details>
+
+        <details class="lesson">
+          <summary><span class="lnum">6</span> Sytuacje wyjątkowe i zero halucynacji</summary>
+          <div class="lbody">
+            <ul>
+              <li><b>Brak kryteriów weryfikacji</b> to częsty błąd. „Sprawdź czy gotowa do działania” jest subiektywne. Zdefiniuj: po czym poznać gotowość (u nas: gotowość budżetowa kilka tys./mies.).</li>
+              <li><b>Anty-halucynacje:</b> „jeśli nie masz informacji, nie udzielaj jej, bazuj tylko na tym co wiesz i zaakceptuj brak pełnego kontekstu”. (Już wpięte w mózg.)</li>
+              <li><b># sytuacje wyjątkowe</b>: gdy nie znasz odpowiedzi → „chętnie wrócę do tego później” i prowadź dalej. Sprawy płatności/zwrotów/regulaminów → „jestem z zespołu od DM” + przekieruj na kontakt obsługi. Obecny klient → kanał dla klientów.</li>
+              <li><b>Edge case</b> (jedno słowo / emoji) jest pokryty systemowo, ale warto wiedzieć, że istnieje.</li>
+            </ul>
+            <div class="todo"><b>Co zrobić:</b> sprawdź, że w instrukcjach masz sekcję „sytuacje wyjątkowe” i jasne kryteria kwalifikacji. Doprecyzuj fragmenty wskazane przez AI.</div>
+          </div>
+        </details>
+
+        <details class="lesson">
+          <summary><span class="lnum">7</span> Plan 14 dni na żywo + A/B skryptu</summary>
+          <div class="lbody">
+            <ul>
+              <li><b>45 minut dziennie</b> przez 14 dni na optymalizację. Rozmowy pojawiają się w <a data-go="rozmowy">Rozmowach</a>, gdy ktoś odpisze.</li>
+              <li><b>Najpierw góra lejka</b> (etap zimny → ciepły → gorący → skonwertowany). Co naprawisz na górze, poprawia wszystko niżej.</li>
+              <li><b>Szukaj frykcji:</b> ludzie nie rozumieją pytań, reagują frustracją, albo rozmowa urywa się w tym samym miejscu. <b>Zasada 30 rozmów</b>: nie wyciągaj wniosków, póki nie widzisz min. 30 podobnych przypadków.</li>
+              <li><b>Zmiękczaj inwazyjne pytania</b> i używaj pytań „A czy B” (sugerują odpowiedź).</li>
+              <li><b>„Testuj ten czat”</b>: przenieś prawdziwą rozmowę do testów, cofnij się do problematycznego miejsca (ikona ołówka) i wygeneruj ponownie. Każdą poprawkę potwierdź 3×.</li>
+              <li><b>Pik nowicjusza:</b> na starcie konwersja jest sztucznie wysoka (najpierw odpisują najgorętsi), potem spada do 50-70% i to jest Twój realny poziom. To NIE znaczy, że setter działa gorzej.</li>
+              <li><b>A/B skryptu</b> dopiero po 14 dniach i powyżej poziomu 20: duplikuj dopracowany wariant A → B, zmień jedną rzecz, zbierz 200-300 rozmów na wariant, zostaw lepszy. 5%→7,5% = +50% wyników.</li>
+            </ul>
+            <div class="todo"><b>Co zrobić:</b> wpisz w kalendarz 45 min/dzień. Po 14 dniach włącz <a data-go="ab">A/B skryptu</a>.</div>
+          </div>
+        </details>
+
+        <details class="lesson">
+          <summary><span class="lnum">8</span> Generowanie leadów: 3 warstwy wzrostu</summary>
+          <div class="lbody">
+            <p>System pozyskiwania leadów ma <b>3 warstwy</b>:</p>
+            <ul>
+              <li><b>Inbound (komentarze→DM):</b> komentarz pod rolką zamienia się w rozmowę. <b>Nie wysyłaj linku w 1. wiadomości</b> (IG tego nie lubi). Najpierw zaczepka „jesteś? widziałem twój komentarz”, po odpowiedzi wyślij materiał (najlepiej PDF, nie link) + pytanie. Porównuj konwersję słów kluczowych (min. 200 aktywacji).</li>
+              <li><b>Outbound (zimny zasięg):</b> ~100 wiadomości/dzień do osób spoza obserwujących. ~15% odpowiada (połowa tego co u obserwujących). To jak +15 000 zł/mies. zaoszczędzone na reklamach. <b>Strategia niebezpośrednia</b>: nie podbieraj obserwujących konkurencji (ufają jej, nie Tobie). Szukaj profili, które obserwują osoby z <i>problemem + budżetem</i> (dla beauty: kliniki medycyny estetycznej, salony droższych zabiegów, hurtownie/producenci sprzętu, akademie szkoleń).</li>
+              <li><b>Recovery:</b> wskrzeszanie urwanych, zakopanych rozmów krótkim triggerem („jesteś?”) lub pretekstem (nowy materiał/webinar).</li>
+            </ul>
+            <p><b>Kwalifikator AI</b> (przed napisaniem) ocenia profil tak/nie i pomija: brak zdjęcia, prywatne, puste bio, za mało/za dużo obserwujących, mężczyzn/kobiety itd. Limit 100/dzień nie może zapychać się słabymi źródłami. <b>Ramp-up</b>: zacznij 30-50/dzień, +10 co 2-3 dni.</p>
+            <p><b>Automatyzacje (flow):</b> komentarz → wiadomość z przyciskiem → sprawdź obserwację → (jeśli nie: poproś o obserwację, pętla) → wyślij lead magnet → opóźnienie → DM z pytaniem o cel → follow-upy. Gotowy szablon wstawisz w <a data-go="automatyzacje">Automatyzacjach</a>.</p>
+            <div class="todo"><b>Co zrobić:</b> skonfiguruj <a data-go="zimny">Zimny zasięg</a> (źródła + kwalifikator AI), <a data-go="komentarze">Komentarze i DM</a> i <a data-go="recovery">Recovery</a>.</div>
+          </div>
+        </details>
+
+      </div>
+    </section>
+
     <!-- OSOBA -->
     <section class="view" id="view-osoba">
       <h1 class="page-title">Osoba</h1>
@@ -102,7 +241,7 @@
           <textarea id="pLejek" rows="5"></textarea>
         </div>
         <div class="tabpane" data-pane="zasoby">
-          <label class="fld">Lead magnety — AI wyśle właściwy zasób, gdy słowo kluczowe pasuje do rozmowy</label>
+          <label class="fld">Lead magnety, AI wyśle właściwy zasób, gdy słowo kluczowe pasuje do rozmowy</label>
           <div id="lmList"></div>
           <div class="row"><button id="addLm" class="btn sm">+ dodaj lead magnet</button></div>
         </div>
@@ -116,8 +255,11 @@
 
     <!-- TESTOWY CZAT -->
     <section class="view" id="view-testchat">
-      <h1 class="page-title">Testowy Czat <span class="pill" id="lvlPill">poziom <span class="lvl" id="lvlNum">1</span> · <span id="xpNum">0</span> PD</span></h1>
-      <p class="page-sub">Rozmawiaj z setterem jako właścicielka gabinetu. To bezpieczna symulacja, nie rusza Instagrama.</p>
+      <h1 class="page-title">Testowy Czat
+        <span class="pill" id="lvlPill">poziom <span class="lvl" id="lvlNum">1</span> · <span id="xpNum">0</span> PD</span>
+        <button id="openTutorial" class="help-btn" title="Samouczek: jak pisać skuteczne instrukcje">?</button>
+      </h1>
+      <p class="page-sub">Rozmawiaj z setterem jako właścicielka gabinetu. To bezpieczna symulacja, nie rusza Instagrama. <b>Cel: poziom 12</b> (zwykle 2-3 h testowania) = instrukcje gotowe na żywo. <span id="lvlGoal" class="muted"></span></p>
       <details class="card"><summary style="cursor:pointer;font-weight:600">🧠 Informacje dla AI (instrukcje) + Historia wersji Live</summary>
         <textarea id="liveInstr" class="bigtext" style="min-height:220px;margin-top:10px"></textarea>
         <div class="row"><button id="saveLive" class="btn primary">Zapisz na Live</button><span id="liveSaved" class="saved hidden">zapisano ✓</span></div>
@@ -159,37 +301,136 @@
     <!-- KOMENTARZE I DM -->
     <section class="view" id="view-komentarze">
       <h1 class="page-title">Komentarze i DM</h1>
-      <p class="page-sub">Gdy ktoś skomentuje post słowem kluczowym, setter wyśle DM i przejmie rozmowę. (Zgodne z IG — Private Replies.)</p>
+      <p class="page-sub">Gdy ktoś skomentuje post słowem kluczowym, setter wyśle DM i przejmie rozmowę. (Zgodne z IG, Private Replies.)</p>
       <div class="card">
         <label class="fld">Słowo kluczowe w komentarzu</label><input type="text" id="cKeyword" placeholder="np. oferta" />
         <label class="fld">Pierwsza wiadomość DM (bez linku!)</label><textarea id="cDm" rows="2"></textarea>
-        <label class="fld"><label class="radio"><input type="checkbox" id="cReply" /> &nbsp;Odpowiedz także publicznie pod komentarzem</label></label>
+        <label class="fld"><label class="radio"><input type="checkbox" id="cReply" /> &nbsp;Odpowiedz także publicznie pod komentarzem (np. „doszła wiadomość 🙂”)</label></label>
         <input type="text" id="cPublic" placeholder="publiczna odpowiedź, np. dzięki, zerknij na dm 🙂" />
         <div class="row"><button id="saveKomentarze" class="btn primary">Zapisz</button><span id="komSaved" class="saved hidden">zapisano ✓</span></div>
+      </div>
+      <div class="card guide">
+        <div class="card-title">📋 Scenariusz Lead Magnet (z Akademii)</div>
+        <ul class="tight">
+          <li><b>Nie wysyłaj linku w pierwszej wiadomości</b> (IG tego nie lubi, ryzyko ograniczeń). Najpierw zaczepka, np. „jesteś? widziałem twój komentarz odnośnie przewodnika 🙂”.</li>
+          <li>Po odpowiedzi setter wysyła materiał (<b>najlepiej PDF</b>, nie link) i zadaje pytanie discovery. Ten scenariusz jest już wpięty w mózg AI (sekcja „scenariusz lead magnet”).</li>
+          <li>Stosuj to słowo kluczowe na wszystkich postach, a <b>porównuj konwersję słów kluczowych</b> (min. 200 aktywacji, zanim ocenisz, który content zarabia najwięcej).</li>
+          <li>Bardziej rozbudowane ścieżki (przycisk → sprawdź obserwację → lead magnet → follow-upy) zrobisz w <a data-go="automatyzacje">Automatyzacjach</a>.</li>
+        </ul>
       </div>
     </section>
 
     <!-- AUTOMATYZACJE (scaffold) -->
     <section class="view" id="view-automatyzacje">
       <h1 class="page-title">Automatyzacje</h1>
-      <p class="page-sub">Ścieżki: trigger (komentarz/słowo) → welcome → sprawdzenie obserwacji → lead magnet → follow-up. Edytuj kroki, Import/Export jako JSON. (Wykonują się na żywo po podłączeniu Instagrama.)</p>
-      <div class="row"><button id="newFlow" class="btn primary sm">+ Nowy flow</button><button id="importFlow" class="btn sm">Import JSON</button></div>
+      <p class="page-sub">Ścieżki: trigger (komentarz/słowo) → welcome → sprawdzenie obserwacji → lead magnet → opóźnienie → follow-up. Edytuj kroki, Import/Export jako JSON. (Wykonują się na żywo po podłączeniu Instagrama.)</p>
+      <div class="row"><button id="newFlow" class="btn primary sm">+ Nowy flow</button><button id="tplFlow" class="btn sm">🧩 Wstaw szablon (Lead Magnet)</button><button id="importFlow" class="btn sm">Import JSON</button></div>
       <div id="flowsBody"></div>
     </section>
 
     <!-- ZIMNY ZASIĘG -->
     <section class="view" id="view-zimny">
       <h1 class="page-title">Zimny zasięg</h1>
-      <p class="page-sub">Pisanie pierwszej wiadomości do osób, które Cię nie obserwują, z listy źródeł.</p>
-      <div class="warn">⚠️ Masowe pisanie do obcych łamie regulamin Instagrama i grozi blokadą konta. Rekomenduję zamiast tego reklamy click-to-DM. Konfiguracja poniżej jest gotowa, ale uruchamiaj świadomie.</div>
-      <div class="card">
-        <label class="radio"><input type="checkbox" id="zEnabled" /> &nbsp;Włącz zimny zasięg</label>
-        <label class="fld">Dzienny limit wiadomości</label><input type="number" id="zLimit" min="10" max="100" />
-        <label class="fld">Pytanie kwalifikatora AI (tak/nie — kogo pisać)</label><textarea id="zQualifier" rows="2"></textarea>
-        <label class="fld">Źródła (konta, których obserwujących pobieramy — po jednym w linii)</label>
-        <textarea id="zSources" rows="4" placeholder="np. hurtownie beauty, producenci laserów, marki pigmentów PMU, akademie szkoleń"></textarea>
-        <div class="row"><button id="saveZimny" class="btn primary">Zapisz</button><span id="zimnySaved" class="saved hidden">zapisano ✓</span></div>
+      <p class="page-sub">Pisanie pierwszej wiadomości do osób, które Cię nie obserwują. Wg wideo: ~100/dzień, ~15% odpowiada, równowartość ~15 000 zł/mies. oszczędzone na reklamach.</p>
+      <div class="warn">⚠️ Masowe pisanie do obcych łamie regulamin Instagrama i oficjalne API tego nie udostępnia. Ta zakładka to <b>planowanie i strategia</b> (źródła, kwalifikator, wiadomość). Realnie najbezpieczniej odpalić to przez reklamy click-to-DM. Uruchamiaj świadomie.</div>
+      <div class="tabs" id="zimnyTabs">
+        <button class="tab active" data-ztab="strategia">Strategia</button>
+        <button class="tab" data-ztab="zrodla">Źródła</button>
+        <button class="tab" data-ztab="kwalifikacja">Kwalifikator AI</button>
+        <button class="tab" data-ztab="wiadomosc">Wiadomość</button>
+        <button class="tab" data-ztab="ustawienia">Ustawienia</button>
       </div>
+
+      <div class="zpane active" data-zpane="strategia">
+        <div class="card">
+          <div class="card-title">3 warstwy generowania leadów</div>
+          <ul class="tight">
+            <li><b>Inbound</b> (komentarze→DM): patrz zakładka „Komentarze i DM”.</li>
+            <li><b>Outbound</b> (ta zakładka): pisanie do zimnych, dobrze dobranych profili.</li>
+            <li><b>Recovery</b>: wskrzeszanie urwanych rozmów (zakładka „Tryb Recovery”).</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Strategia niebezpośrednia (klucz do skuteczności)</div>
+          <p>NIE podbieraj obserwujących innych gabinetów, oni ufają tamtemu gabinetowi, nie Tobie (2-3× niższa skuteczność, leady bombardowane przez konkurencję).</p>
+          <p>Szukaj profili obserwowanych przez osoby z <b>problemem, który rozwiązujesz</b> ORAZ z <b>siłą nabywczą</b>. Dla beauty np.:</p>
+          <ul class="tight">
+            <li>kliniki medycyny estetycznej / salony droższych zabiegów (klientki z budżetem na wygląd),</li>
+            <li>hurtownie i producenci sprzętu/laserów, marki pigmentów PMU (obserwowane przez właścicielki gabinetów),</li>
+            <li>akademie i szkolenia beauty, targi branżowe.</li>
+          </ul>
+          <p class="muted small">Pobieramy <b>ostatni ~1000</b> obserwujących źródła (świeża intencja), nie schodzimy głębiej. Monitor nowych obserwujących łapie najgorętszą intencję „tu i teraz”.</p>
+        </div>
+      </div>
+
+      <div class="zpane" data-zpane="zrodla">
+        <div class="card">
+          <div class="card-title">Konta-źródła</div>
+          <p class="page-sub">Dodaj kilkanaście kont. Typ określa sposób pozyskania kontaktów (jak w Setorze).</p>
+          <div id="zSourceList" class="list"></div>
+          <div class="row">
+            <input type="text" id="zSrcHandle" placeholder="@konto źródłowe (np. klinika_estetyczna_xyz)" />
+            <select id="zSrcType">
+              <option value="followers">Ostatni 1000 obserwujących</option>
+              <option value="monitor">Monitoruj nowych obserwujących</option>
+              <option value="similar">Znajdź podobne konta</option>
+              <option value="likers">Lajkujący mój content</option>
+            </select>
+            <button id="addSrc" class="btn">Dodaj</button>
+          </div>
+          <label class="radio" style="margin-top:10px"><input type="checkbox" id="zLikersAi" /> &nbsp;AI co ~10 min skanuje lajkujących mój content i dodaje do listy (włącz tylko, gdy lajkujący to realnie Twoja grupa)</label>
+          <label class="fld" style="margin-top:10px">Notatki / opisowe źródła (po jednym w linii)</label>
+          <textarea id="zSources" rows="3" placeholder="np. hurtownie beauty, producenci laserów, marki pigmentów PMU, akademie szkoleń"></textarea>
+        </div>
+      </div>
+
+      <div class="zpane" data-zpane="kwalifikacja">
+        <div class="card">
+          <div class="card-title">Kwalifikator AI (filtr przed napisaniem)</div>
+          <label class="radio"><input type="checkbox" id="zqEnabled" /> &nbsp;Włącz zaawansowaną kwalifikację (odfiltruj nietrafione profile, zanim do nich napiszemy)</label>
+          <label class="fld">Pytanie tak/nie, które AI zada dla każdego profilu (analizuje zdjęcia, posty, bio, linki)</label>
+          <textarea id="zqAi" rows="2" placeholder="np. Czy ten profil prowadzi gabinet beauty / medycyny estetycznej?"></textarea>
+          <div class="card-title" style="margin-top:14px">Pomijaj profile</div>
+          <div class="checkgrid">
+            <label class="radio"><input type="checkbox" id="zqSkipMen" /> mężczyzn</label>
+            <label class="radio"><input type="checkbox" id="zqSkipWomen" /> kobiety</label>
+            <label class="radio"><input type="checkbox" id="zqNoPhoto" /> bez zdjęcia profilowego</label>
+            <label class="radio"><input type="checkbox" id="zqPrivate" /> prywatne / nie-firmowe</label>
+            <label class="radio"><input type="checkbox" id="zqEmptyBio" /> z pustym bio</label>
+            <label class="radio"><input type="checkbox" id="zqNoLink" /> bez linku w bio</label>
+            <label class="radio"><input type="checkbox" id="zqNoHighlights" /> bez wyróżnionych relacji</label>
+            <label class="radio"><input type="checkbox" id="zqNoPosts" /> bez postów</label>
+          </div>
+          <div class="row" style="gap:16px;margin-top:10px">
+            <div><label class="fld">Min. obserwujących (0 = bez limitu)</label><input type="number" id="zqMinF" min="0" /></div>
+            <div><label class="fld">Maks. obserwujących (0 = bez limitu)</label><input type="number" id="zqMaxF" min="0" /></div>
+            <div><label class="fld">Min. liczba postów (0 = bez)</label><input type="number" id="zqMinP" min="0" /></div>
+          </div>
+          <label class="radio" style="margin-top:10px"><input type="checkbox" id="zqUncertain" /> &nbsp;Pomijaj profile, co do których AI nie jest pewne (zalecane)</label>
+          <label class="radio"><input type="checkbox" id="zqFilterDm" /> &nbsp;Filtruj przychodzące DM zanim AI odpisze (nie pisz do znajomych)</label>
+          <label class="radio"><input type="checkbox" id="zOverwrite" /> &nbsp;Pomiń kwalifikację i pisz do wszystkich z listy (Overwrite, zwykle WYŁĄCZONE)</label>
+        </div>
+      </div>
+
+      <div class="zpane" data-zpane="wiadomosc">
+        <div class="card">
+          <div class="card-title">Pierwsza wiadomość na zimno</div>
+          <p class="page-sub">Te osoby Cię NIE obserwują, żadnego „dzięki za follow”. Hook, nie sprzedaż. Cel: wywołać odpowiedź. Po reakcji setter wraca do normalnego procesu.</p>
+          <textarea id="zMessage" rows="3" placeholder="np. hej, trafiłem na twój gabinet i robi wrażenie, mogę o coś zapytać?"></textarea>
+          <p class="muted small">Możesz to też testować w A/B (jak openery). Patrz na konwersję, nie tylko % odpowiedzi. Min. 200 odpowiedzi, zanim ocenisz.</p>
+        </div>
+      </div>
+
+      <div class="zpane" data-zpane="ustawienia">
+        <div class="card">
+          <label class="radio"><input type="checkbox" id="zEnabled" /> &nbsp;Włącz zimny zasięg</label>
+          <label class="fld">Dzienny limit wiadomości (maks. 100)</label><input type="number" id="zLimit" min="10" max="100" />
+          <label class="radio" style="margin-top:10px"><input type="checkbox" id="zRampUp" /> &nbsp;Rozgrzewka limitu (zacznij niżej, +10 co 2-3 dni)</label>
+          <label class="fld">Limit startowy przy rozgrzewce</label><input type="number" id="zStartDaily" min="10" max="100" />
+        </div>
+      </div>
+
+      <div class="row"><button id="saveZimny" class="btn primary">Zapisz zimny zasięg</button><span id="zimnySaved" class="saved hidden">zapisano ✓</span></div>
     </section>
 
     <!-- TRYB RECOVERY -->
@@ -206,17 +447,38 @@
         <textarea id="rMessages" rows="3"></textarea>
         <div class="row"><button id="saveRecovery" class="btn primary">Zapisz</button><span id="recSaved" class="saved hidden">zapisano ✓</span></div>
       </div>
+      <div class="card guide">
+        <div class="card-title">💡 Jak to działa (z Akademii)</div>
+        <ul class="tight">
+          <li>W DM-ach jest mnóstwo urwanych, zakopanych rozmów, które mogą skończyć się sprzedażą w najbliższych dniach.</li>
+          <li>Wyślij krótki trigger („jesteś?”), żeby osoba odpisała, a setter przejmie rozmowę i poprowadzi ją do konwersji.</li>
+          <li>Możesz użyć pretekstu: nowy lead magnet albo webinar (np. „robimy darmowy webinar o pozyskiwaniu klientek, wpadniesz?”).</li>
+        </ul>
+      </div>
     </section>
 
     <!-- ANALITYKA -->
     <section class="view" id="view-analityka">
       <h1 class="page-title">Analityka</h1>
-      <p class="page-sub">Etapy leadów i konwersja na umówienie.</p>
+      <p class="page-sub">Etapy leadów, rozpoczęte rozmowy i konwersja na umówienie.</p>
       <div id="statCards" class="stats"></div>
       <h3>Rozmowy / dzień (ostatnie 14 dni)</h3>
       <div id="chart"></div>
+      <h3>Konwersja / dzień <span class="muted small">(uwaga na „pik nowicjusza”)</span></h3>
+      <div id="convChart"></div>
+      <div id="newbieNote"></div>
       <h3>Lejek</h3>
       <div id="funnel" class="funnel"></div>
+      <div class="card guide" style="margin-top:16px">
+        <div class="card-title">🔎 Jak szukać frykcji (plan 14 dni)</div>
+        <ul class="tight">
+          <li>45 min dziennie: przeglądaj <a data-go="rozmowy">Rozmowy</a>, znajduj 2-3 rzeczy do poprawy. Najpierw góra lejka (zimny → ciepły).</li>
+          <li><b>Zasada 30 rozmów</b>: nie wyciągaj wniosków, póki nie widzisz min. 30 podobnych przypadków (np. rozmowa urywa się w tym samym miejscu).</li>
+          <li>Frykcja = ludzie nie rozumieją pytań, reagują frustracją, albo nie odpisują. Zmiękczaj inwazyjne pytania, używaj pytań „A czy B”.</li>
+          <li><b>Pik nowicjusza:</b> na starcie konwersja jest sztucznie wysoka (najpierw odpisują najgorętsi), potem spada do 50-70% i to jest Twój realny poziom. To nie wada settera.</li>
+          <li>Każdą poprawkę przenieś do testu („Testuj ten czat”), cofnij się do miejsca błędu (ołówek) i potwierdź 3×.</li>
+        </ul>
+      </div>
     </section>
 
     <!-- INSTAGRAM -->
@@ -271,7 +533,7 @@
     <!-- KONFIGURACJA SPRZEDAŻY -->
     <section class="view" id="view-konfiguracja">
       <h1 class="page-title">Konfiguracja Sprzedaży</h1>
-      <p class="page-sub">Produkty/usługi i waluta — używane, gdy setter mówi o ofercie.</p>
+      <p class="page-sub">Produkty/usługi i waluta, używane, gdy setter mówi o ofercie.</p>
       <div class="card">
         <div class="card-title">🛒 Produkty</div>
         <div id="prodList" class="list"></div>
@@ -289,6 +551,54 @@
     </section>
   </main>
 </div>
+
+<!-- SAMOUCZEK (modal) -->
+<div id="tutorialOverlay" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>📘 Samouczek: jak pisać skuteczne instrukcje</h2>
+      <button id="closeTutorial" class="help-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="muted">Najważniejsze zasady dostrajania settera. Wracaj tu, gdy coś „się nie słucha”.</p>
+
+      <h3>Zasady pisania promptów</h3>
+      <ul>
+        <li><b>Najpierw zobacz, potem zmieniaj.</b> Zrób 1 pełną rozmowę na czysto (bez instrukcji) i zanotuj 2-3 rzeczy do poprawy. System już działa w 70-80% dobrze.</li>
+        <li><b>Pisz jak do inteligentnego 12-latka:</b> prosto i precyzyjnie. „Jeżeli X, to Y, z wyjątkiem A i B”. Krótka reguła > długa instrukcja.</li>
+        <li><b>Przykłady to złoto:</b> min. 12 konkretnych przykładów wiadomości. Źle: „pisz krótko”. Dobrze: „jeśli rozmówca pisze 10 słów, odpisz maks. ~1,5× tyle”.</li>
+        <li><b>Wymuszaj tam gdzie trzeba:</b> „zawsze”, „musisz”, „zasada krytyczna”, „nigdy”. Ale nie wszędzie, bo nadmiar tworzy sprzeczności i setter dziwaczeje.</li>
+        <li><b>Sztywno vs luźno:</b> „wyślij dokładnie jeden do jednego któryś z przykładów” = sztywno; bez tego setter sam komponuje z przykładów.</li>
+        <li><b>Porządek przez nagłówki #</b> (# styl, # początek rozmowy, # kwalifikacja…). Pracuj od góry do dołu. Nie doklejaj reguł na końcu („Frankenstein”).</li>
+        <li><b>Każdą zmianę testuj 3×</b> w różnych rolach: pozytywna, sceptyczna, agresywna.</li>
+        <li><b>Nie zlecaj pisania instrukcji AI.</b> AI używaj do diagnozy (poniżej), nie do pisania. Unikaj „matematyki” w promptach.</li>
+        <li><b>Mindset:</b> gdy setter się nie słucha, to prawie zawsze nieprecyzyjna instrukcja, nie wada systemu. AI zgaduje, więc brak precyzji = halucynacje.</li>
+      </ul>
+
+      <h3>3 prompty diagnostyczne (wklej do ChatGPT / Gemini w trybie myślenia)</h3>
+      <p class="muted">Najpierw wklej swoje instrukcje, potem jeden z promptów.</p>
+
+      <div class="copybox">
+        <div class="copyhead"><b>1) Diagnoza konkretnego zachowania</b><button class="btn sm copybtn" data-copy="p1">kopiuj</button></div>
+        <pre id="p1">Poniżej znajdują się instrukcje do mojego agenta AI, który obsługuje moje DM-y na Instagramie. Nie jestem w stanie zrozumieć, dlaczego [OPISZ ZACHOWANIE, np. zawsze ustawia 6 follow-upów]. Przeskanuj te instrukcje i pokaż mi dokładnie wszystkie fragmenty, które mogą to powodować.</pre>
+      </div>
+
+      <div class="copybox">
+        <div class="copyhead"><b>2) Znajdź fragmenty zbyt mało precyzyjne</b><button class="btn sm copybtn" data-copy="p2">kopiuj</button></div>
+        <pre id="p2">Przejrzyj moje instrukcje do agenta AI, który obsługuje moje DM-y na Instagramie i umawia kwalifikowane rozmowy sprzedażowe. Zakładając, że model jest inteligentny i przeszkolony pod sprzedaż, znajdź TYLKO te fragmenty, które naprawdę nie są wystarczająco precyzyjne. Cytowane fragmenty umieść w wydzielonych oknach kodu, a swoje komentarze poza oknem kodu.</pre>
+      </div>
+
+      <div class="copybox">
+        <div class="copyhead"><b>3) Znajdź sprzeczności logiczne</b><button class="btn sm copybtn" data-copy="p3">kopiuj</button></div>
+        <pre id="p3">Przeskanuj moje instrukcje do agenta AI obsługującego DM-y na Instagramie i znajdź wszystkie sprzeczności logiczne oraz miejsca, gdzie jedna reguła przeczy drugiej. Pokaż pary sprzecznych fragmentów w oknach kodu, a wyjaśnienie poza oknem kodu.</pre>
+      </div>
+
+      <h3>Gamifikacja</h3>
+      <p>Celuj w <b>poziom 12</b> (zwykle 2-3 h testowania) = instrukcje zwykle gotowe na żywo. Potem 14 dni obserwacji prawdziwych rozmów (45 min/dzień).</p>
+    </div>
+  </div>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>
