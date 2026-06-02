@@ -38,6 +38,8 @@ app.get('/api/settings', (req, res) => {
     instagram: {
       enabled: !!(s.instagram && s.instagram.enabled),
       igUserId: (s.instagram && s.instagram.igUserId) || '',
+      igUsername: (s.instagram && s.instagram.igUsername) || '',
+      targetIgUsername: (s.instagram && s.instagram.targetIgUsername) || '',
       verifyToken: (s.instagram && s.instagram.verifyToken) || '',
       commentKeyword: (s.instagram && s.instagram.commentKeyword) || '',
       appId: (s.instagram && s.instagram.appId) || '',
@@ -211,11 +213,17 @@ app.get('/auth/facebook/callback', async (req, res) => {
       const llRes = await fetch('https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=' + encodeURIComponent(ig.appId) + '&client_secret=' + encodeURIComponent(ig.appSecret) + '&fb_exchange_token=' + encodeURIComponent(t.access_token));
       const ll = await llRes.json(); if (ll.access_token) userToken = ll.access_token;
     } catch {}
-    const pRes = await fetch('https://graph.facebook.com/v21.0/me/accounts?fields=name,access_token,instagram_business_account&access_token=' + encodeURIComponent(userToken));
+    const pRes = await fetch('https://graph.facebook.com/v21.0/me/accounts?fields=name,access_token,instagram_business_account{id,username}&access_token=' + encodeURIComponent(userToken));
     const p = await pRes.json();
-    const page = (p.data || []).find(x => x.instagram_business_account);
-    if (!page) return res.redirect('/?ig=nopage');
-    store.updateSettings({ instagram: { enabled: true, igUserId: page.instagram_business_account.id, pageAccessToken: page.access_token } });
+    const pages = (p.data || []).filter(x => x.instagram_business_account);
+    if (!pages.length) return res.redirect('/?ig=nopage');
+    // Wybierz konkretne konto IG (domyślnie adrian.szerszen), a nie pierwsze z brzegu —
+    // u kogoś z wieloma podpiętymi kontami "pierwsze z brzegu" bywa cudze (np. klienta).
+    const target = (ig.targetIgUsername || '').toLowerCase().trim();
+    let page = target ? pages.find(x => ((x.instagram_business_account.username || '').toLowerCase() === target)) : null;
+    if (!page) page = pages[0];
+    const iba = page.instagram_business_account;
+    store.updateSettings({ instagram: { enabled: true, igUserId: iba.id, igUsername: iba.username || '', pageAccessToken: page.access_token } });
     res.redirect('/?ig=connected');
   } catch (e) { res.redirect('/?ig=error'); }
 });
