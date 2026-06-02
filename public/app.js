@@ -22,6 +22,7 @@ function showView(view) {
   if (view === 'rozmowy') loadConversations();
   if (view === 'analityka') loadAnalytics();
   if (view === 'crm') loadCrm();
+  if (view === 'ab') loadAb();
 }
 $$('.nav-item[data-view], .nav-subitem[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
 $$('.nav-parent[data-toggle]').forEach(b => b.addEventListener('click', () => {
@@ -43,7 +44,7 @@ async function loadSettings() {
   $('#pFirma').value = p.firma || ''; $('#pNisza').value = p.nisza || ''; $('#pImie').value = p.imie || '';
   $('#pPlec').value = p.plec || ''; $('#pTytul').value = p.tytul || '';
   $('#pProblemy').value = p.problemy || ''; $('#pCele').value = p.cele || ''; $('#pLejek').value = p.lejek || '';
-  $('#pZasoby').value = p.zasoby || ''; $('#pKryteria').value = p.kryteriaDQ || '';
+  renderLm(p.leadMagnets || []); $('#pKryteria').value = p.kryteriaDQ || '';
   // Komentarze
   const cd = c.commentToDm || {}; $('#cKeyword').value = cd.keyword || ''; $('#cDm').value = cd.dm || ''; $('#cReply').checked = !!cd.replyToComment; $('#cPublic').value = cd.publicReply || '';
   // Zimny
@@ -77,10 +78,23 @@ $('#savePersona').addEventListener('click', async () => {
   await api('/settings', { method: 'POST', body: { persona: {
     firma: $('#pFirma').value, nisza: $('#pNisza').value, imie: $('#pImie').value, plec: $('#pPlec').value,
     tytul: $('#pTytul').value, problemy: $('#pProblemy').value, cele: $('#pCele').value, lejek: $('#pLejek').value,
-    zasoby: $('#pZasoby').value, kryteriaDQ: $('#pKryteria').value,
+    leadMagnets: collectLm(), kryteriaDQ: $('#pKryteria').value,
   }}});
   flash('#personaSaved'); await loadSettings();
 });
+
+// ---------- lead magnety (Osoba → Zasoby) ----------
+function renderLm(list) {
+  $('#lmList').innerHTML = (list || []).map((z, i) => `<div class="card" style="background:var(--panel2);margin:6px 0">
+    <input type="text" class="lm-name" placeholder="nazwa zasobu (np. Darmowy przewodnik…)" value="${esc(z.name || '')}" />
+    <div class="row"><input type="text" class="lm-kw" placeholder="słowa kluczowe po przecinku" value="${esc(z.keywords || '')}" /><input type="text" class="lm-link" placeholder="link (opcjonalnie)" value="${esc(z.link || '')}" /><button class="btn danger sm" data-lmdel="${i}">usuń</button></div></div>`).join('');
+  $$('#lmList [data-lmdel]').forEach(b => b.addEventListener('click', () => { const a = collectLm(); a.splice(+b.dataset.lmdel, 1); renderLm(a); }));
+}
+function collectLm() {
+  const n = $$('#lmList .lm-name'), k = $$('#lmList .lm-kw'), l = $$('#lmList .lm-link');
+  return n.map((x, i) => ({ name: x.value.trim(), keywords: k[i].value.trim(), link: l[i].value.trim() })).filter(z => z.name);
+}
+$('#addLm').addEventListener('click', () => { const a = collectLm(); a.push({ name: '', keywords: '', link: '' }); renderLm(a); });
 
 // ---------- config sections ----------
 $('#saveKomentarze').addEventListener('click', async () => {
@@ -229,16 +243,70 @@ async function loadCrm() {
 async function loadAnalytics() {
   const a = await api('/analytics');
   $('#statCards').innerHTML = statCardsHtml(a);
+  if ($('#chart')) $('#chart').innerHTML = chartHtml(a.series);
   const order = ['zimny', 'cieply', 'goracy', 'skonwertowany', 'semi_dq', 'dq'];
   const max = Math.max(1, ...order.map(s => a.byStage[s] || 0));
   $('#funnel').innerHTML = order.map(s => { const n = a.byStage[s] || 0; return `<div class="fbar"><div class="flabel">${STAGE_LABEL[s]}</div><div class="ftrack"><div class="ffill" style="width:${(n / max) * 100}%"></div></div><div class="fcount">${n}</div></div>`; }).join('');
 }
 function statCardsHtml(a) {
-  return `<div class="stat"><div class="num">${a.total}</div><div class="lbl">rozmów łącznie</div></div>
-    <div class="stat"><div class="num">${a.byStage.skonwertowany || 0}</div><div class="lbl">umówionych</div></div>
-    <div class="stat"><div class="num">${a.conversion}%</div><div class="lbl">konwersja</div></div>`;
+  const card = (num, lbl, sub) => `<div class="stat"><div class="num">${num}</div><div class="lbl">${lbl}</div>${sub ? `<div class="lbl" style="margin-top:4px;opacity:.7">${sub}</div>` : ''}</div>`;
+  return card(a.konwersje ?? 0, 'Konwersje') + card(a.kontakty ?? 0, 'Kontakty') + card(a.obserwujacy ?? '—', 'Obserwujący', 'wymaga IG') + card(a.wizyty ?? '—', 'Wizyty profilu', 'wymaga IG');
+}
+function chartHtml(series) {
+  if (!series || !series.length) return '';
+  const max = Math.max(1, ...series.map(s => s.count));
+  return `<div class="chart">${series.map(s => `<div class="chart-col" title="${s.day}: ${s.count}"><div class="chart-bar" style="height:${Math.max(2, Math.round(s.count / max * 100))}%"></div><div class="chart-x">${s.day.slice(0, 2)}</div></div>`).join('')}</div>`;
 }
 async function loadPanel() { const a = await api('/analytics'); $('#panelStats').innerHTML = statCardsHtml(a); }
+
+// ---------- A/B testy ----------
+let abData = null;
+async function loadAb() { abData = await api('/ab'); renderAb(); }
+function abCard(key, title, field, cfg, stats, winner, min) {
+  const byId = Object.fromEntries((stats || []).map(s => [s.id, s]));
+  const vars = (cfg.variants || []).map(v => {
+    const s = byId[v.id] || { started: 0, conv: 0 };
+    const win = winner === v.id ? ' ⭐ zwycięzca' : '';
+    const inputEl = field === 'instructions'
+      ? `<textarea class="abv" data-k="${key}" data-id="${v.id}" data-f="instructions" rows="3" placeholder="instrukcje tego wariantu (puste = używa głównych instrukcji z Osoby)">${esc(v.instructions || '')}</textarea>`
+      : `<input type="text" class="abv" data-k="${key}" data-id="${v.id}" data-f="content" value="${esc(v.content || '')}" />`;
+    return `<div class="card" style="background:var(--panel2);margin:8px 0">
+      <div class="row"><b>Wariant ${esc(v.label || v.id)}${win}</b>
+        <span class="badge ${s.started >= min ? 'goracy' : 'zimny'}">rozpoczęte: ${s.started}</span>
+        <span class="badge skonwertowany">konwersja: ${s.conv}%</span>
+        <button class="btn danger sm" data-abdel="${key}:${v.id}">usuń</button></div>
+      ${inputEl}
+      <div class="row"><span class="muted small">ruch %</span><input type="number" min="0" max="100" class="abw" data-k="${key}" data-id="${v.id}" value="${v.weight || 0}" style="max-width:90px" /></div>
+    </div>`;
+  }).join('');
+  return `<div class="card"><div class="card-title">${title}</div>
+    <label class="radio"><input type="checkbox" class="aben" data-k="${key}" ${cfg.enabled ? 'checked' : ''}/> &nbsp;Włącz ten test (ruch rozdzielany automatycznie wg %)</label>
+    ${vars}
+    <div class="row"><button class="btn sm" data-abadd="${key}">+ dodaj wariant</button></div></div>`;
+}
+function renderAb() {
+  const ab = abData.ab || {}, st = abData.stats || {}, min = st.minSample || 200;
+  $('#abMin').textContent = min;
+  $('#abBody').innerHTML =
+    abCard('openers', '✨ Openery A/B', 'content', ab.openers || { variants: [] }, st.openers, st.openerWinner, min) +
+    abCard('script', '🧠 Skrypt A/B (cały proces)', 'instructions', ab.script || { variants: [] }, st.script, st.scriptWinner, min);
+  $$('#abBody [data-abdel]').forEach(b => b.addEventListener('click', () => { const [k, id] = b.dataset.abdel.split(':'); abData.ab[k].variants = abData.ab[k].variants.filter(v => v.id !== id); saveAb(); }));
+  $$('#abBody [data-abadd]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.abadd; collectAb(); const used = (abData.ab[k].variants || []).map(v => v.id); const id = 'ABCDEFGH'.split('').find(l => !used.includes(l)) || ('V' + used.length); abData.ab[k].variants.push({ id, label: id, weight: 0, content: '', instructions: '' }); saveAb(); }));
+  $$('#abBody .aben, #abBody .abv, #abBody .abw').forEach(el => el.addEventListener('change', () => saveAb()));
+}
+function collectAb() {
+  ['openers', 'script'].forEach(k => {
+    const cfg = abData.ab[k]; if (!cfg) return;
+    const en = $(`#abBody .aben[data-k="${k}"]`); if (en) cfg.enabled = en.checked;
+    (cfg.variants || []).forEach(v => {
+      const vi = $(`#abBody .abv[data-k="${k}"][data-id="${v.id}"]`);
+      if (vi) { if (vi.dataset.f === 'instructions') v.instructions = vi.value; else v.content = vi.value; }
+      const wi = $(`#abBody .abw[data-k="${k}"][data-id="${v.id}"]`);
+      if (wi) v.weight = parseInt(wi.value) || 0;
+    });
+  });
+}
+async function saveAb() { collectAb(); const r = await api('/ab', { method: 'POST', body: { ab: abData.ab } }); if (r.stats) abData.stats = r.stats; renderAb(); }
 
 // ---------- init ----------
 loadSettings().then(loadPanel).catch(e => { $('#statusText').textContent = 'błąd: ' + e.message; });

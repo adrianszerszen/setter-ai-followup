@@ -64,6 +64,11 @@ function defaultSettings() {
       lejek: 'Cel = umówić bezpłatną konsultację strategiczną z Adrianem (followupagencja.com). Opis rozmowy: bezpłatna ~30-minutowa rozmowa, na której omawiamy obecne problemy gabinetu, źródła pozyskiwania klientek oraz zmiany, które mogą poprawić liczbę rezerwacji.',
       zasoby: 'Darmowy przewodnik: Jak zapełnić grafik gabinetu w 30 dni\nLista kontrolna: 10 kroków do większej liczby rezerwacji\nSzablon wiadomości do pozyskiwania klientek z internetu',
       kryteriaDQ: 'Gabinet nie ma żadnej oferty lub nie potrafi jasno jej opisać\nWłaścicielka nie chce wprowadzać zmian w obsłudze klientek\nBrak gotowości do pracy nad komunikacją i sprzedażą\nGabinet działa wyłącznie sezonowo i nie chce stabilnego wzrostu\nBudżet na działania promocyjne jest skrajnie ograniczony\nWłaścicielka oczekuje natychmiastowych efektów bez wdrażania zaleceń\nZespół nie ma czasu na uporządkowanie procesu pozyskiwania klientek\nGabinet nie obsługuje klientek detalicznych\nBrak zgody na mierzenie efektów i analizę wyników',
+      leadMagnets: [
+        { name: 'Darmowy przewodnik: Jak zapełnić grafik gabinetu w 30 dni', keywords: 'przewodnik, pdf, grafik, klientki, rezerwacje', link: '' },
+        { name: 'Lista kontrolna: 10 kroków do większej liczby rezerwacji', keywords: 'lista, checklist, rezerwacje, kroki', link: '' },
+        { name: 'Szablon wiadomości do pozyskiwania klientek', keywords: 'szablon, wiadomości, dm, pozyskiwanie', link: '' },
+      ],
     },
     config: {
       quietHours: { enabled: true, start: '23:30', end: '06:30' },
@@ -73,6 +78,17 @@ function defaultSettings() {
       coldOutreach: { enabled: false, dailyLimit: 40, qualifier: 'Czy ten profil prowadzi gabinet kosmetyczny lub medycyny estetycznej (np. makijaż permanentny, depilacja laserowa, kosmetologia)?', sources: [] },
       products: [],
       currency: 'PLN',
+      ab: {
+        openers: { enabled: false, variants: [
+          { id: 'A', label: 'A', content: 'jesteś?', weight: 50 },
+          { id: 'B', label: 'B', content: 'mogę o coś zapytać?', weight: 50 },
+        ] },
+        script: { enabled: false, variants: [
+          { id: 'A', label: 'A', instructions: '', weight: 50 },
+          { id: 'B', label: 'B', instructions: '', weight: 50 },
+        ] },
+        minSample: 200,
+      },
     },
   };
 }
@@ -89,6 +105,9 @@ export function load() {
   // dopełnij brakujące pola ustawień (gdy aktualizujemy aplikację)
   const d = defaultSettings();
   for (const k of Object.keys(d)) if (db.settings[k] === undefined) db.settings[k] = d[k];
+  // dopełnij brakujące pod-pola config (np. nowe funkcje jak ab) i persony — kompatybilność przy aktualizacjach
+  if (db.settings.config) { const dc = d.config || {}; for (const k of Object.keys(dc)) if (db.settings.config[k] === undefined) db.settings.config[k] = dc[k]; }
+  if (db.settings.persona) { const dp = d.persona || {}; for (const k of Object.keys(dp)) if (db.settings.persona[k] === undefined) db.settings.persona[k] = dp[k]; }
   // produkcyjny fallback ze zmiennych środowiskowych (hosting bez trwałego dysku)
   if (process.env.AI_API_KEY && !db.settings.apiKey) db.settings.apiKey = process.env.AI_API_KEY;
   if (process.env.AI_PROVIDER) db.settings.provider = process.env.AI_PROVIDER;
@@ -111,7 +130,7 @@ export function getInstagram() {
 }
 
 // Buduje pełny system prompt = blok persony (z zakładek Osoba) + instrukcje (skrypt).
-export function systemPrompt() {
+export function systemPrompt(conv) {
   const s = load().settings;
   const p = s.persona || {};
   const asList = v => (v || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => '- ' + x).join('\n');
@@ -125,8 +144,42 @@ export function systemPrompt() {
     p.lejek && ('Cel rozmowy (lejek): ' + p.lejek),
     p.zasoby && ('Lead magnety / zasoby do podesłania, gdy pasują do rozmowy:\n' + asList(p.zasoby)),
     p.kryteriaDQ && ('Kryteria dyskwalifikacji (DQ; przy braku budżetu raczej semi-DQ + follow-up):\n' + asList(p.kryteriaDQ)),
+    (p.leadMagnets && p.leadMagnets.length) && ('Lead magnety — gdy temat rozmowy pasuje do słów kluczowych, zaproponuj dany zasób i wyślij link (jeśli podany):\n' + p.leadMagnets.filter(z => z.name).map(z => '- ' + z.name + (z.keywords ? ' [słowa kluczowe: ' + z.keywords + ']' : '') + (z.link ? ' → ' + z.link : ' (brak linku — nie wysyłaj linku, zaproponuj na konsultacji)')).join('\n')),
   ].filter(Boolean).join('\n');
-  return block + '\n\n' + (s.instructions || '');
+  let instr = s.instructions || '';
+  const ab = s.config && s.config.ab;
+  if (conv && conv.abScript && ab && ab.script) {
+    const v = (ab.script.variants || []).find(x => x.id === conv.abScript);
+    if (v && (v.instructions || '').trim()) instr = v.instructions;
+  }
+  return block + '\n\n' + instr;
+}
+
+// Wybór wariantu A/B wg wagi (suwak %)
+export function pickVariant(variants) {
+  const active = (variants || []).filter(v => (v.weight || 0) > 0);
+  if (!active.length) return null;
+  const total = active.reduce((s, v) => s + (v.weight || 0), 0);
+  let r = Math.random() * total;
+  for (const v of active) { r -= (v.weight || 0); if (r <= 0) return v; }
+  return active[active.length - 1];
+}
+
+// Statystyki A/B liczone z rozmów (rozpoczęte = lead odpisał; konwersja = skonwertowany)
+export function abStats() {
+  const s = load().settings;
+  const convs = load().conversations;
+  const min = (s.config && s.config.ab && s.config.ab.minSample) || 200;
+  const calc = (variants, key) => (variants || []).map(v => {
+    const mine = convs.filter(c => c[key] === v.id);
+    const started = mine.filter(c => (c.messages || []).length >= 2).length;
+    const conversions = mine.filter(c => c.stage === 'skonwertowany' || c.booked).length;
+    return { id: v.id, label: v.label, weight: v.weight, started, conversions, conv: started ? Math.round((conversions / started) * 1000) / 10 : 0 };
+  });
+  const winner = arr => { const elig = arr.filter(v => v.started >= min); if (elig.length < 2) return null; const top = elig.slice().sort((a, b) => b.conv - a.conv); return top[0].conv > top[1].conv ? top[0].id : null; };
+  const openers = calc(s.config && s.config.ab && s.config.ab.openers && s.config.ab.openers.variants, 'abOpener');
+  const script = calc(s.config && s.config.ab && s.config.ab.script && s.config.ab.script.variants, 'abScript');
+  return { minSample: min, openers, script, openerWinner: winner(openers), scriptWinner: winner(script) };
 }
 
 export function updateSettings(patch) {
@@ -224,10 +277,15 @@ export function analytics() {
     if (c.booked) booked++;
   }
   const total = convs.length;
+  const now = new Date();
+  const fmt = d => String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0');
+  const series = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(now); d.setDate(now.getDate() - i); series.push({ day: fmt(d), count: 0 }); }
+  for (const c of convs) { const s = series.find(x => x.day === fmt(new Date(c.createdAt || Date.now()))); if (s) s.count++; }
   return {
-    total,
-    booked,
-    byStage,
+    total, booked, byStage,
     conversion: total ? Math.round((byStage.skonwertowany / total) * 1000) / 10 : 0,
+    konwersje: byStage.skonwertowany, kontakty: total, obserwujacy: null, wizyty: null,
+    series,
   };
 }

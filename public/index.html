@@ -20,6 +20,7 @@
       <div class="nav-group-label">Setter</div>
       <button class="nav-item" data-view="osoba">👤 Osoba</button>
       <button class="nav-item" data-view="testchat">💬 Testowy Czat</button>
+      <button class="nav-item" data-view="ab">🧪 Testy A/B</button>
       <button class="nav-item nav-parent" data-toggle="leadgen">🎯 Generowanie klientów <span class="chev">▸</span></button>
       <div class="nav-sub" id="sub-leadgen">
         <button class="nav-subitem" data-view="openery">Wiadomości Powitalne A/B</button>
@@ -101,8 +102,9 @@
           <textarea id="pLejek" rows="5"></textarea>
         </div>
         <div class="tabpane" data-pane="zasoby">
-          <label class="fld">Zasoby (lead magnety, linki, dowody)</label>
-          <textarea id="pZasoby" rows="5"></textarea>
+          <label class="fld">Lead magnety — AI wyśle właściwy zasób, gdy słowo kluczowe pasuje do rozmowy</label>
+          <div id="lmList"></div>
+          <div class="row"><button id="addLm" class="btn sm">+ dodaj lead magnet</button></div>
         </div>
         <div class="tabpane" data-pane="kryteria">
           <label class="fld">Kryteria dyskwalifikacji (kogo DQ / semi-DQ)</label>
@@ -130,6 +132,13 @@
         <textarea id="chatInput" rows="2" placeholder="napisz jako klientka… (Enter = wyślij)"></textarea>
         <button id="sendBtn" class="btn primary">Wyślij</button>
       </div>
+    </section>
+
+    <!-- TESTY A/B -->
+    <section class="view" id="view-ab">
+      <h1 class="page-title">Testy A/B</h1>
+      <p class="page-sub">Testuj warianty openerów i całego skryptu na żywo. Zwycięzcę wskazujemy po min. <span id="abMin">200</span> rozpoczętych rozmowach. Zasada 80/20: gros ruchu na zwycięzcę, część na nowe pomysły. Zmiany zapisują się automatycznie.</p>
+      <div id="abBody"></div>
     </section>
 
     <!-- WIADOMOŚCI POWITALNE A/B -->
@@ -206,6 +215,8 @@
       <h1 class="page-title">Analityka</h1>
       <p class="page-sub">Etapy leadów i konwersja na umówienie.</p>
       <div id="statCards" class="stats"></div>
+      <h3>Rozmowy / dzień (ostatnie 14 dni)</h3>
+      <div id="chart"></div>
       <h3>Lejek</h3>
       <div id="funnel" class="funnel"></div>
     </section>

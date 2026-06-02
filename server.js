@@ -64,16 +64,21 @@ app.delete('/api/conversations/:id', (req, res) => {
 
 app.post('/api/conversations', async (req, res) => {
   const { opener, leadFirstMessage, username } = req.body || {};
+  const settings = store.getSettings();
+  const ab = (settings.config && settings.config.ab) || {};
+  let chosenOpener = opener, abOpener = null, abScript = null;
+  if (ab.openers && ab.openers.enabled) { const v = store.pickVariant(ab.openers.variants); if (v) { chosenOpener = v.content; abOpener = v.id; } }
+  if (ab.script && ab.script.enabled) { const v = store.pickVariant(ab.script.variants); if (v) abScript = v.id; }
   const messages = [];
-  if (opener) messages.push({ role: 'assistant', text: opener });
+  if (chosenOpener) messages.push({ role: 'assistant', text: chosenOpener });
   if (leadFirstMessage) messages.push({ role: 'user', text: leadFirstMessage });
   const conv = store.createConversation({ source: 'test', username: username || 'klientka_test', messages });
-  const settings = store.getSettings();
+  store.updateConversation(conv.id, { abOpener, abScript });
   if (conv.messages.length && conv.messages[conv.messages.length - 1].role === 'user') {
     try {
       const reply = await generateReply({
         provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
-        maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt() + memo(conv), messages: conv.messages,
+        maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(conv) + memo(conv), messages: conv.messages,
       });
       store.addMessage(conv.id, 'assistant', reply);
     } catch (e) {
@@ -95,7 +100,7 @@ app.post('/api/conversations/:id/message', async (req, res) => {
   try {
     reply = await generateReply({
       provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
-      maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt() + memo(conv),
+      maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(conv) + memo(conv),
       messages: store.getConversation(conv.id).messages,
     });
   } catch (e) {
@@ -108,6 +113,16 @@ app.post('/api/conversations/:id/message', async (req, res) => {
 
 // ---- ANALITYKA ----
 app.get('/api/analytics', (req, res) => res.json(store.analytics()));
+
+// ---- A/B TESTY ----
+app.get('/api/ab', (req, res) => {
+  const s = store.getSettings();
+  res.json({ ab: (s.config && s.config.ab) || {}, stats: store.abStats() });
+});
+app.post('/api/ab', (req, res) => {
+  if (req.body && req.body.ab) store.updateSettings({ config: { ab: req.body.ab } });
+  res.json({ ok: true, stats: store.abStats() });
+});
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // ---- WEBHOOK INSTAGRAM ----
