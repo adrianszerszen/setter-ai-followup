@@ -157,7 +157,9 @@ export function load() {
   // produkcyjny fallback ze zmiennych środowiskowych (hosting bez trwałego dysku)
   if (process.env.AI_API_KEY && !db.settings.apiKey) db.settings.apiKey = process.env.AI_API_KEY;
   if (process.env.AI_PROVIDER) db.settings.provider = process.env.AI_PROVIDER;
-  if (process.env.AI_MODEL) db.settings.model = process.env.AI_MODEL;
+  // Model bierzemy z kodu/ustawień (domyślnie Haiku). Env AI_MODEL traktujemy tylko jako fallback,
+  // gdy w ustawieniach nie ma modelu, żeby stara zmienna na serwerze nie nadpisywała wyboru.
+  if (process.env.AI_MODEL && !db.settings.model) db.settings.model = process.env.AI_MODEL;
   save();
   return db;
 }
