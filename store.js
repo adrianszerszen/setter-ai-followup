@@ -33,7 +33,7 @@ function defaultSettings() {
   return {
     provider: 'anthropic',
     apiKey: '',
-    model: 'claude-sonnet-4-6',
+    model: 'claude-haiku-4-5',
     maxTokens: 320,
     bookingLink: 'https://followupagencja.com/',
     instructions: readDefaultInstructions(),
