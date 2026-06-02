@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as store from './store.js';
-import { generateReply, analyzeConversation } from './engine.js';
+import { generateReply, analyzeConversation, noLongDashes } from './engine.js';
 import * as ig from './instagram.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,7 +70,7 @@ app.post('/api/conversations', async (req, res) => {
   if (ab.openers && ab.openers.enabled) { const v = store.pickVariant(ab.openers.variants); if (v) { chosenOpener = v.content; abOpener = v.id; } }
   if (ab.script && ab.script.enabled) { const v = store.pickVariant(ab.script.variants); if (v) abScript = v.id; }
   const messages = [];
-  if (chosenOpener) messages.push({ role: 'assistant', text: chosenOpener });
+  if (chosenOpener) messages.push({ role: 'assistant', text: noLongDashes(chosenOpener) });
   if (leadFirstMessage) messages.push({ role: 'user', text: leadFirstMessage });
   const conv = store.createConversation({ source: 'test', username: username || 'klientka_test', messages });
   store.updateConversation(conv.id, { abOpener, abScript });
@@ -80,7 +80,7 @@ app.post('/api/conversations', async (req, res) => {
         provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
         maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(conv) + memo(conv), messages: conv.messages,
       });
-      store.addMessage(conv.id, 'assistant', reply);
+      store.addMessage(conv.id, 'assistant', noLongDashes(reply));
     } catch (e) {
       return res.status(apiErrStatus(e)).json({ error: apiErrMsg(e), conversation: store.getConversation(conv.id) });
     }

@@ -3,7 +3,7 @@
 // wysyłkę DM oraz odpowiedź prywatną na komentarz (Private Replies).
 import crypto from 'crypto';
 import * as store from './store.js';
-import { generateReply, analyzeConversation } from './engine.js';
+import { generateReply, analyzeConversation, noLongDashes } from './engine.js';
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
@@ -100,9 +100,10 @@ async function onInboundMessage(sender, text) {
     console.error('  ⚠️ engine:', e.message);
     return;
   }
-  store.addMessage(conv.id, 'assistant', reply);
+  const clean = noLongDashes(reply);
+  store.addMessage(conv.id, 'assistant', clean);
   try {
-    await sendMessage(sender, reply);
+    await sendMessage(sender, clean);
   } catch (e) {
     console.error('  ⚠️ wysyłka IG:', e.message);
   }
@@ -119,7 +120,7 @@ async function onComment(value) {
   if (!keyword || !text.includes(keyword)) return;
   const commentId = value.id;
   // Najpierw zaczepka (nie link!) — zgodnie z zasadą z kursu: najpierw reakcja, potem rozmowa.
-  const dm = 'jesteś? widziałem twój komentarz 🙂';
+  const dm = noLongDashes(ig.commentDm || 'jesteś? widziałem twój komentarz 🙂');
   try {
     await privateReplyToComment(commentId, dm);
   } catch (e) {

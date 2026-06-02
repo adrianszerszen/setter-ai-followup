@@ -81,6 +81,20 @@ export async function generateReply({ provider, apiKey, model, maxTokens, system
 
 const STAGES = ['zimny', 'cieply', 'goracy', 'skonwertowany', 'semi_dq', 'dq'];
 
+// Blokada długich myślników — setter NIGDY nie wysyła "—" ani "–" (klasyczny ślad AI)
+export function noLongDashes(s) {
+  if (!s) return s;
+  return String(s)
+    .replace(/\s*[—–―]\s*/g, ', ')
+    .replace(/--+/g, '-')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*,/g, ', ')
+    .replace(/,\s*([.!?])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s,]+|[\s,]+$/g, '')
+    .trim();
+}
+
 export async function analyzeConversation(settings, conversation) {
   const transcript = conversation.messages
     .map(m => (m.role === 'assistant' ? 'SETTER' : 'KLIENT') + ': ' + m.text)
@@ -113,7 +127,7 @@ export async function analyzeConversation(settings, conversation) {
       stage: STAGES.includes(j.stage) ? j.stage : 'zimny',
       booked: !!j.booked,
       note: (j.note || '').toString().slice(0, 400),
-      followups: (Array.isArray(j.followups) ? j.followups : []).map(x => String(x)).filter(Boolean).slice(0, 3),
+      followups: (Array.isArray(j.followups) ? j.followups : []).map(x => noLongDashes(String(x))).filter(Boolean).slice(0, 3),
     };
   } catch {
     return null;
