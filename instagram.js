@@ -3,7 +3,7 @@
 // wysyłkę DM oraz odpowiedź prywatną na komentarz (Private Replies).
 import crypto from 'crypto';
 import * as store from './store.js';
-import { generateReply, classifyStage } from './engine.js';
+import { generateReply, analyzeConversation } from './engine.js';
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
@@ -92,7 +92,8 @@ async function onInboundMessage(sender, text) {
   try {
     reply = await generateReply({
       provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
-      maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(),
+      maxTokens: settings.maxTokens,
+      systemPrompt: store.systemPrompt() + (store.getConversation(conv.id).contactNote ? '\n\n# pamięć o tym kontakcie:\n' + store.getConversation(conv.id).contactNote : ''),
       messages: store.getConversation(conv.id).messages,
     });
   } catch (e) {
@@ -106,8 +107,8 @@ async function onInboundMessage(sender, text) {
     console.error('  ⚠️ wysyłka IG:', e.message);
   }
   try {
-    const cls = await classifyStage(settings, store.getConversation(conv.id));
-    if (cls) store.updateConversation(conv.id, { stage: cls.stage, booked: cls.booked });
+    const a = await analyzeConversation(settings, store.getConversation(conv.id));
+    if (a) store.updateConversation(conv.id, { stage: a.stage, booked: a.booked, contactNote: a.note, followups: a.followups });
   } catch {}
 }
 

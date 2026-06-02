@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as store from './store.js';
-import { generateReply, classifyStage } from './engine.js';
+import { generateReply, analyzeConversation } from './engine.js';
 import * as ig from './instagram.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -17,10 +17,12 @@ function apiErrMsg(e) {
     : 'Błąd modelu AI: ' + e.message;
 }
 
-async function classifyAndSave(settings, id) {
+const memo = c => (c && c.contactNote) ? '\n\n# pamięć o tym kontakcie (z wcześniejszych wiadomości):\n' + c.contactNote : '';
+
+async function analyzeAndSave(settings, id) {
   try {
-    const cls = await classifyStage(settings, store.getConversation(id));
-    if (cls) store.updateConversation(id, { stage: cls.stage, booked: cls.booked });
+    const a = await analyzeConversation(settings, store.getConversation(id));
+    if (a) store.updateConversation(id, { stage: a.stage, booked: a.booked, contactNote: a.note, followups: a.followups });
   } catch {}
 }
 
@@ -71,13 +73,13 @@ app.post('/api/conversations', async (req, res) => {
     try {
       const reply = await generateReply({
         provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
-        maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(), messages: conv.messages,
+        maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt() + memo(conv), messages: conv.messages,
       });
       store.addMessage(conv.id, 'assistant', reply);
     } catch (e) {
       return res.status(apiErrStatus(e)).json({ error: apiErrMsg(e), conversation: store.getConversation(conv.id) });
     }
-    await classifyAndSave(settings, conv.id);
+    await analyzeAndSave(settings, conv.id);
   }
   res.json(store.getConversation(conv.id));
 });
@@ -93,14 +95,14 @@ app.post('/api/conversations/:id/message', async (req, res) => {
   try {
     reply = await generateReply({
       provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
-      maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(),
+      maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt() + memo(conv),
       messages: store.getConversation(conv.id).messages,
     });
   } catch (e) {
     return res.status(apiErrStatus(e)).json({ error: apiErrMsg(e), conversation: store.getConversation(conv.id) });
   }
   store.addMessage(conv.id, 'assistant', reply);
-  await classifyAndSave(settings, conv.id);
+  await analyzeAndSave(settings, conv.id);
   res.json(store.getConversation(conv.id));
 });
 

@@ -81,7 +81,7 @@ export async function generateReply({ provider, apiKey, model, maxTokens, system
 
 const STAGES = ['zimny', 'cieply', 'goracy', 'skonwertowany', 'semi_dq', 'dq'];
 
-export async function classifyStage(settings, conversation) {
+export async function analyzeConversation(settings, conversation) {
   const transcript = conversation.messages
     .map(m => (m.role === 'assistant' ? 'SETTER' : 'KLIENT') + ': ' + m.text)
     .join('\n');
@@ -95,22 +95,26 @@ export async function classifyStage(settings, conversation) {
     '- "skonwertowany": zgodził się na konsultację, prosi o termin albo dostał link i chce się umówić.\n' +
     '- "semi_dq": na teraz nie (np. brak budżetu), ale wart follow-upu.\n' +
     '- "dq": nie nasz target (nie prowadzi gabinetu / inna branża).\n' +
-    'Zwróć WYŁĄCZNIE JSON: {"stage":"<jeden_z_etapów>","booked":true|false}\n\nROZMOWA:\n' +
+    'Zwróć WYŁĄCZNIE JSON: {"stage":"<jeden_z_etapów>","booked":true|false,"note":"1-2 zdania pamięci o kontakcie: kim jest, sytuacja/problem, gotowość, sensowny następny krok","followups":["krótki follow-up gdyby zniknął, w stylu rozmowy","inny","jeszcze inny"]}\nFollow-upy: krótkie, różne, dopasowane do miejsca gdzie rozmowa się urwała.\n\nROZMOWA:\n' +
     transcript;
   try {
     const txt = await generateReply({
       provider: settings.provider,
       apiKey: settings.apiKey,
       model: settings.model,
-      maxTokens: 60,
+      maxTokens: 350,
       systemPrompt: system,
       messages: [{ role: 'user', text: user }],
     });
     const m = txt.match(/\{[\s\S]*\}/);
     if (!m) return null;
-    const json = JSON.parse(m[0]);
-    if (!STAGES.includes(json.stage)) return null;
-    return { stage: json.stage, booked: !!json.booked };
+    const j = JSON.parse(m[0]);
+    return {
+      stage: STAGES.includes(j.stage) ? j.stage : 'zimny',
+      booked: !!j.booked,
+      note: (j.note || '').toString().slice(0, 400),
+      followups: (Array.isArray(j.followups) ? j.followups : []).map(x => String(x)).filter(Boolean).slice(0, 3),
+    };
   } catch {
     return null;
   }

@@ -187,7 +187,11 @@ $('#chatInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.s
 function renderChat(conv) {
   const w = $('#chatWindow');
   if (!conv || !conv.messages.length) { w.innerHTML = '<div class="chat-empty">Brak wiadomości.</div>'; return; }
-  w.innerHTML = conv.messages.map(msgHtml).join(''); w.scrollTop = w.scrollHeight; setStage(conv.stage);
+  let head = '';
+  if (conv.contactNote) head += `<div class="memo">🧠 <b>pamięć:</b> ${esc(conv.contactNote)}</div>`;
+  if (conv.followups && conv.followups.length) head += `<div class="memo fu">⏰ <b>zaplanowane follow-upy:</b> ${conv.followups.map(esc).join(' · ')}</div>`;
+  w.innerHTML = head + conv.messages.map(msgHtml).join('');
+  w.scrollTop = w.scrollHeight; setStage(conv.stage);
 }
 function msgHtml(m) { const s = m.role === 'assistant'; return `<div class="msg ${s ? 'setter' : 'klient'}"><span class="who">${s ? 'setter' : 'klientka'}</span>${esc(m.text)}</div>`; }
 function appendMsg(m) { const w = $('#chatWindow'); if (w.querySelector('.chat-empty')) w.innerHTML = ''; w.insertAdjacentHTML('beforeend', msgHtml(m)); w.scrollTop = w.scrollHeight; }
