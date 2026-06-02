@@ -92,7 +92,7 @@ async function onInboundMessage(sender, text) {
   try {
     reply = await generateReply({
       provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
-      maxTokens: settings.maxTokens, systemPrompt: settings.instructions,
+      maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(),
       messages: store.getConversation(conv.id).messages,
     });
   } catch (e) {

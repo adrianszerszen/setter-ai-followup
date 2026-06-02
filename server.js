@@ -31,6 +31,8 @@ app.get('/api/settings', (req, res) => {
     provider: s.provider, model: s.model, maxTokens: s.maxTokens,
     bookingLink: s.bookingLink, instructions: s.instructions, openers: s.openers,
     apiKeySet: !!s.apiKey,
+    persona: s.persona || {},
+    config: s.config || {},
     instagram: {
       enabled: !!(s.instagram && s.instagram.enabled),
       igUserId: (s.instagram && s.instagram.igUserId) || '',
@@ -69,7 +71,7 @@ app.post('/api/conversations', async (req, res) => {
     try {
       const reply = await generateReply({
         provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
-        maxTokens: settings.maxTokens, systemPrompt: settings.instructions, messages: conv.messages,
+        maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(), messages: conv.messages,
       });
       store.addMessage(conv.id, 'assistant', reply);
     } catch (e) {
@@ -91,7 +93,7 @@ app.post('/api/conversations/:id/message', async (req, res) => {
   try {
     reply = await generateReply({
       provider: settings.provider, apiKey: settings.apiKey, model: settings.model,
-      maxTokens: settings.maxTokens, systemPrompt: settings.instructions,
+      maxTokens: settings.maxTokens, systemPrompt: store.systemPrompt(),
       messages: store.getConversation(conv.id).messages,
     });
   } catch (e) {

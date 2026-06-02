@@ -53,6 +53,27 @@ function defaultSettings() {
       appSecret: '',
       commentKeyword: 'oferta',
     },
+    persona: {
+      firma: 'Adrian Szerszeń | Marketing Gabinetów i Skalowanie',
+      nisza: 'marketing gabinetów i pozyskiwanie klientek dla gabinetów usługowych (beauty / medycyna estetyczna)',
+      imie: 'Adrian',
+      plec: 'Mężczyzna',
+      tytul: 'Doradca ds. pozyskiwania klientek dla gabinetów',
+      problemy: 'za mało klientek, niepełny grafik, nieskuteczny lub przepalony marketing, brak czasu na marketing, walka ceną i promocjami',
+      cele: 'stały dopływ kwalifikowanych klientek z okolicy, pełny grafik, zdominowanie lokalnego rynku',
+      lejek: 'cel rozmowy = umówić bezpłatną 30-min konsultację strategiczną z Adrianem (followupagencja.com); na niej omawiamy problemy gabinetu, źródła klientek i zmiany poprawiające liczbę rezerwacji',
+      zasoby: 'darmowy content na IG/FB Adriana; bezpłatna konsultacja; case studies gabinetów (73/50/40 zapisów, +200% obrotu)',
+      kryteriaDQ: 'nie prowadzi gabinetu beauty/med. estetycznej = DQ; brak gotowości na inwestycję kilku tys. zł/mc w reklamy = semi-DQ + follow-up',
+    },
+    config: {
+      quietHours: { enabled: true, start: '23:30', end: '06:30' },
+      skipBigAccounts: true,
+      commentToDm: { keyword: 'oferta', dm: 'jesteś? widziałem twój komentarz 🙂', replyToComment: true, publicReply: 'dzięki, zerknij na dm 🙂' },
+      recovery: { enabled: false, dailyMin: 5, dailyMax: 15, messages: ['jesteś?', 'wracam, bo coś mi chodziło po głowie odnośnie twojego gabinetu'] },
+      coldOutreach: { enabled: false, dailyLimit: 40, qualifier: 'Czy ten profil prowadzi gabinet kosmetyczny lub medycyny estetycznej (np. makijaż permanentny, depilacja laserowa, kosmetologia)?', sources: [] },
+      products: [],
+      currency: 'PLN',
+    },
   };
 }
 
@@ -89,6 +110,24 @@ export function getInstagram() {
   return s.instagram;
 }
 
+// Buduje pełny system prompt = blok persony (z zakładek Osoba) + instrukcje (skrypt).
+export function systemPrompt() {
+  const s = load().settings;
+  const p = s.persona || {};
+  const block = [
+    '# persona i firma',
+    [p.imie && ('Działasz jako asystent: ' + p.imie + (p.tytul ? ' — ' + p.tytul : '') + '.'),
+     p.firma && ('Firma: ' + p.firma + '.'),
+     p.nisza && ('Nisza: ' + p.nisza + '.')].filter(Boolean).join(' '),
+    p.problemy && ('Problemy, które rozwiązujemy: ' + p.problemy),
+    p.cele && ('Cele, które pomagamy osiągnąć: ' + p.cele),
+    p.lejek && ('Cel rozmowy (lejek): ' + p.lejek),
+    p.zasoby && ('Zasoby: ' + p.zasoby),
+    p.kryteriaDQ && ('Kryteria dyskwalifikacji: ' + p.kryteriaDQ),
+  ].filter(Boolean).join('\n');
+  return block + '\n\n' + (s.instructions || '');
+}
+
 export function updateSettings(patch) {
   const s = load().settings;
   for (const k of ['provider', 'model', 'maxTokens', 'bookingLink', 'instructions', 'openers']) {
@@ -104,6 +143,14 @@ export function updateSettings(patch) {
     }
     if (typeof patch.instagram.pageAccessToken === 'string' && patch.instagram.pageAccessToken.trim() !== '') s.instagram.pageAccessToken = patch.instagram.pageAccessToken.trim();
     if (typeof patch.instagram.appSecret === 'string' && patch.instagram.appSecret.trim() !== '') s.instagram.appSecret = patch.instagram.appSecret.trim();
+  }
+  if (patch.persona && typeof patch.persona === 'object') {
+    if (!s.persona) s.persona = {};
+    Object.assign(s.persona, patch.persona);
+  }
+  if (patch.config && typeof patch.config === 'object') {
+    if (!s.config) s.config = {};
+    for (const k of Object.keys(patch.config)) s.config[k] = patch.config[k];
   }
   save();
   return s;
