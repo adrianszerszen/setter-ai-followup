@@ -45,6 +45,7 @@ function defaultSettings() {
       'widzę gabinet, mogę o coś spytać?',
       'mam pytanie 🙂',
     ],
+    liveVersions: [],
     instagram: {
       enabled: false,
       verifyToken: '',
@@ -140,6 +141,27 @@ export function getInstagram() {
   const s = load().settings;
   if (!s.instagram) s.instagram = { enabled: false, verifyToken: '', pageAccessToken: '', igUserId: '', appSecret: '', commentKeyword: 'oferta' };
   return s.instagram;
+}
+
+// Historia Live — edycja instrukcji + wersjonowanie (jak /testing w Setorze)
+export function getLive() {
+  const s = load().settings;
+  return { instructions: s.instructions || '', versions: (s.liveVersions || []).map(v => ({ ts: v.ts, preview: (v.instructions || '').slice(0, 90) })) };
+}
+export function saveLive(instructions) {
+  const s = load().settings;
+  s.instructions = instructions || '';
+  if (!s.liveVersions) s.liveVersions = [];
+  s.liveVersions.unshift({ ts: Date.now(), instructions: s.instructions });
+  s.liveVersions = s.liveVersions.slice(0, 20);
+  save();
+  return getLive();
+}
+export function restoreLive(ts) {
+  const s = load().settings;
+  const v = (s.liveVersions || []).find(x => x.ts === ts);
+  if (v) { s.instructions = v.instructions; s.liveVersions.unshift({ ts: Date.now(), instructions: v.instructions }); s.liveVersions = s.liveVersions.slice(0, 20); save(); }
+  return getLive();
 }
 
 // Buduje pełny system prompt = blok persony (z zakładek Osoba) + instrukcje (skrypt).

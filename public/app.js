@@ -24,6 +24,7 @@ function showView(view) {
   if (view === 'crm') loadCrm();
   if (view === 'ab') loadAb();
   if (view === 'automatyzacje') loadFlows();
+  if (view === 'testchat') loadLive();
 }
 $$('.nav-item[data-view], .nav-subitem[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
 $$('.nav-parent[data-toggle]').forEach(b => b.addEventListener('click', () => {
@@ -359,6 +360,21 @@ async function saveFlows() { collectFlows(); await api('/flows', { method: 'POST
 function exportFlow(f) { const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (f.name || 'flow') + '.json'; a.click(); }
 $('#newFlow').addEventListener('click', () => { if (!flowsData) flowsData = []; else collectFlows(); flowsData.push({ id: 'f' + Date.now(), name: 'Nowy flow', active: false, trigger: { type: 'comment', keyword: '' }, nodes: [defaultNode('welcome')] }); saveFlows(); });
 $('#importFlow').addEventListener('click', () => { const t = prompt('Wklej JSON flow:'); if (!t) return; try { const f = JSON.parse(t); if (!flowsData) flowsData = []; flowsData.push(f); saveFlows(); } catch (e) { alert('Niepoprawny JSON'); } });
+
+// ---------- Historia Live (instrukcje + wersje) ----------
+async function loadLive() {
+  const d = await api('/live');
+  if ($('#liveInstr')) $('#liveInstr').value = d.instructions || '';
+  renderLiveHistory(d.versions || []);
+}
+function renderLiveHistory(versions) {
+  if (!$('#liveHistory')) return;
+  $('#liveHistory').innerHTML = (versions && versions.length)
+    ? versions.map(v => `<div class="list-item"><div class="li-main"><div>${new Date(v.ts).toLocaleString('pl-PL')}</div><div class="li-last">${esc(v.preview)}…</div></div><button class="btn sm" data-restore="${v.ts}">przywróć</button></div>`).join('')
+    : '<p class="muted small">Brak zapisanych wersji. Kliknij „Zapisz na Live".</p>';
+  $$('#liveHistory [data-restore]').forEach(b => b.addEventListener('click', async () => { const d = await api('/live/restore', { method: 'POST', body: { ts: Number(b.dataset.restore) } }); if ($('#liveInstr')) $('#liveInstr').value = d.instructions || ''; renderLiveHistory(d.versions || []); }));
+}
+if ($('#saveLive')) $('#saveLive').addEventListener('click', async () => { const d = await api('/live', { method: 'POST', body: { instructions: $('#liveInstr').value } }); renderLiveHistory(d.versions || []); flash('#liveSaved'); });
 
 // ---------- init ----------
 loadSettings().then(loadPanel).catch(e => { $('#statusText').textContent = 'błąd: ' + e.message; });

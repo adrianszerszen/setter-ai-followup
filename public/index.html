@@ -117,7 +117,13 @@
     <!-- TESTOWY CZAT -->
     <section class="view" id="view-testchat">
       <h1 class="page-title">Testowy Czat <span class="pill" id="lvlPill">poziom <span class="lvl" id="lvlNum">1</span> · <span id="xpNum">0</span> PD</span></h1>
-      <p class="page-sub">Rozmawiaj z setterem jako właścicielka gabinetu. To bezpieczna symulacja — nie rusza Instagrama.</p>
+      <p class="page-sub">Rozmawiaj z setterem jako właścicielka gabinetu. To bezpieczna symulacja, nie rusza Instagrama.</p>
+      <details class="card"><summary style="cursor:pointer;font-weight:600">🧠 Informacje dla AI (instrukcje) + Historia wersji Live</summary>
+        <textarea id="liveInstr" class="bigtext" style="min-height:220px;margin-top:10px"></textarea>
+        <div class="row"><button id="saveLive" class="btn primary">Zapisz na Live</button><span id="liveSaved" class="saved hidden">zapisano ✓</span></div>
+        <h3>Historia wersji Live</h3>
+        <div id="liveHistory" class="list"></div>
+      </details>
       <div class="card">
         <div class="row">
           <label class="radio"><input type="radio" name="startmode" value="opener" checked /> Setter zaczyna (opener)</label>

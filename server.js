@@ -124,6 +124,11 @@ app.post('/api/ab', (req, res) => {
   res.json({ ok: true, stats: store.abStats() });
 });
 
+// ---- HISTORIA LIVE (instrukcje + wersje) ----
+app.get('/api/live', (req, res) => res.json(store.getLive()));
+app.post('/api/live', (req, res) => res.json(store.saveLive((req.body && req.body.instructions) || '')));
+app.post('/api/live/restore', (req, res) => res.json(store.restoreLive(req.body && req.body.ts)));
+
 // ---- AUTOMATYZACJE (flows) ----
 app.get('/api/flows', (req, res) => {
   const s = store.getSettings();
