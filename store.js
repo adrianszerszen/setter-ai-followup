@@ -59,11 +59,11 @@ function defaultSettings() {
       imie: 'Adrian',
       plec: 'Mężczyzna',
       tytul: 'Doradca ds. pozyskiwania klientek dla gabinetów',
-      problemy: 'za mało klientek, niepełny grafik, nieskuteczny lub przepalony marketing, brak czasu na marketing, walka ceną i promocjami',
-      cele: 'stały dopływ kwalifikowanych klientek z okolicy, pełny grafik, zdominowanie lokalnego rynku',
-      lejek: 'cel rozmowy = umówić bezpłatną 30-min konsultację strategiczną z Adrianem (followupagencja.com); na niej omawiamy problemy gabinetu, źródła klientek i zmiany poprawiające liczbę rezerwacji',
-      zasoby: 'darmowy content na IG/FB Adriana; bezpłatna konsultacja; case studies gabinetów (73/50/40 zapisów, +200% obrotu)',
-      kryteriaDQ: 'nie prowadzi gabinetu beauty/med. estetycznej = DQ; brak gotowości na inwestycję kilku tys. zł/mc w reklamy = semi-DQ + follow-up',
+      problemy: 'Puste grafiki zabiegowe i brak stałego napływu klientek\nZbyt mała liczba zapytań z internetu\nNieskuteczna reklama i przepalanie budżetu na działania bez zwrotu\nBrak uporządkowanego systemu pozyskiwania rezerwacji\nSłabe zaufanie do marki gabinetu w oczach potencjalnych klientek\nNiska liczba opinii i poleceń od zadowolonych klientek\nBrak wyróżnienia się na tle konkurencji w okolicy\nChaotyczna komunikacja oferty i cennika\nTrudność w zamienianiu obserwatorek w realne rezerwacje',
+      cele: 'Zapełnić grafik zabiegami w ciągu 30 dni\nUstabilizować liczbę nowych klientek każdego tygodnia\nZwiększyć liczbę zapytań telefonicznych i wiadomości\nZbudować rozpoznawalność gabinetu w lokalnej okolicy\nPoprawić skuteczność działań promocyjnych\nZwiększyć liczbę opinii 5/5\nWprowadzić prosty system pozyskiwania rezerwacji\nPodnieść średnią wartość pojedynczej wizyty\nSkalować gabinet bez ciągłego dokładania własnej pracy',
+      lejek: 'Cel = umówić bezpłatną konsultację strategiczną z Adrianem (followupagencja.com). Opis rozmowy: bezpłatna ~30-minutowa rozmowa, na której omawiamy obecne problemy gabinetu, źródła pozyskiwania klientek oraz zmiany, które mogą poprawić liczbę rezerwacji.',
+      zasoby: 'Darmowy przewodnik: Jak zapełnić grafik gabinetu w 30 dni\nLista kontrolna: 10 kroków do większej liczby rezerwacji\nSzablon wiadomości do pozyskiwania klientek z internetu',
+      kryteriaDQ: 'Gabinet nie ma żadnej oferty lub nie potrafi jasno jej opisać\nWłaścicielka nie chce wprowadzać zmian w obsłudze klientek\nBrak gotowości do pracy nad komunikacją i sprzedażą\nGabinet działa wyłącznie sezonowo i nie chce stabilnego wzrostu\nBudżet na działania promocyjne jest skrajnie ograniczony\nWłaścicielka oczekuje natychmiastowych efektów bez wdrażania zaleceń\nZespół nie ma czasu na uporządkowanie procesu pozyskiwania klientek\nGabinet nie obsługuje klientek detalicznych\nBrak zgody na mierzenie efektów i analizę wyników',
     },
     config: {
       quietHours: { enabled: true, start: '23:30', end: '06:30' },
@@ -114,16 +114,17 @@ export function getInstagram() {
 export function systemPrompt() {
   const s = load().settings;
   const p = s.persona || {};
+  const asList = v => (v || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => '- ' + x).join('\n');
   const block = [
     '# persona i firma',
     [p.imie && ('Działasz jako asystent: ' + p.imie + (p.tytul ? ' — ' + p.tytul : '') + '.'),
      p.firma && ('Firma: ' + p.firma + '.'),
      p.nisza && ('Nisza: ' + p.nisza + '.')].filter(Boolean).join(' '),
-    p.problemy && ('Problemy, które rozwiązujemy: ' + p.problemy),
-    p.cele && ('Cele, które pomagamy osiągnąć: ' + p.cele),
+    p.problemy && ('Problemy klientów, które rozwiązujemy (używaj na etapie badania problemów i kwalifikacji):\n' + asList(p.problemy)),
+    p.cele && ('Cele/rezultaty, do których prowadzisz rozmowę (używaj do motywowania leada):\n' + asList(p.cele)),
     p.lejek && ('Cel rozmowy (lejek): ' + p.lejek),
-    p.zasoby && ('Zasoby: ' + p.zasoby),
-    p.kryteriaDQ && ('Kryteria dyskwalifikacji: ' + p.kryteriaDQ),
+    p.zasoby && ('Lead magnety / zasoby do podesłania, gdy pasują do rozmowy:\n' + asList(p.zasoby)),
+    p.kryteriaDQ && ('Kryteria dyskwalifikacji (DQ; przy braku budżetu raczej semi-DQ + follow-up):\n' + asList(p.kryteriaDQ)),
   ].filter(Boolean).join('\n');
   return block + '\n\n' + (s.instructions || '');
 }
