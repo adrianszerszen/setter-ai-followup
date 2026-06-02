@@ -143,6 +143,16 @@ app.post('/api/conversations/:id/regenerate', async (req, res) => {
 // ---- ANALITYKA ----
 app.get('/api/analytics', (req, res) => res.json(store.analytics()));
 
+// ---- INSTAGRAM INSIGHTS (realne liczby z konta przez Graph API) ----
+app.get('/api/instagram/insights', async (req, res) => {
+  try {
+    const days = Math.max(1, Math.min(90, parseInt(req.query.days) || 30));
+    res.json(await ig.fetchInsights(days));
+  } catch (e) {
+    res.json({ connected: false, error: e.message });
+  }
+});
+
 // ---- A/B TESTY ----
 app.get('/api/ab', (req, res) => {
   const s = store.getSettings();

@@ -445,9 +445,12 @@ function crmSection(cls, title, rows) {
 // ---------- analytics + panel ----------
 async function loadAnalytics() {
   const a = await api('/analytics');
-  $('#statCards').innerHTML = statCardsHtml(a);
-  if ($('#igInsights')) $('#igInsights').innerHTML = IG_METRICS.map((m, i) => mcard(m[0], '0', m[1], i, '—')).join('');
-  if ($('#igOverview')) $('#igOverview').innerHTML = OV.map(l => `<div class="ov-tile"><div class="ot-l">${l}</div><div class="ot-n">0</div><div class="ot-d"></div></div>`).join('');
+  let ins = null;
+  try { ins = await api('/instagram/insights'); } catch {}
+  const igOn = !!(ins && ins.connected);
+  $('#statCards').innerHTML = statCardsHtml(a, igOn ? ins : null);
+  if ($('#igInsights')) $('#igInsights').innerHTML = IG_METRICS.map((m, i) => mcard(m[0], igOn ? fmtNum(ins[IG_KEYS[i]]) : '0', m[1], i, IG_KEYS[i] === 'followers' ? 'na koncie' : (igOn ? 'ost. 30 dni' : '—'))).join('');
+  if ($('#igOverview')) $('#igOverview').innerHTML = OV.map((l, i) => { const k = OV_KEYS[i]; const v = (igOn && k) ? ins[k] : null; return `<div class="ov-tile"><div class="ot-l">${l}</div><div class="ot-n">${igOn ? fmtNum(v) : 0}</div><div class="ot-d"></div></div>`; }).join('');
   if ($('#dayReach')) $('#dayReach').innerHTML = (a.series || []).map(() => '<div class="dr-col" style="height:3px"></div>').join('');
   if ($('#dayAxis') && a.series && a.series.length) $('#dayAxis').innerHTML = `<span>${a.series[0].day}</span><span>${a.series[a.series.length - 1].day}</span>`;
   if ($('#attrCards')) $('#attrCards').innerHTML =
@@ -464,14 +467,14 @@ async function loadAnalytics() {
   const max = Math.max(1, ...order.map(s => a.byStage[s] || 0));
   $('#funnel').innerHTML = order.map(s => { const n = a.byStage[s] || 0; return `<div class="fbar"><div class="flabel">${STAGE_LABEL[s]}</div><div class="ftrack"><div class="ffill" style="width:${(n / max) * 100}%"></div></div><div class="fcount">${n}</div></div>`; }).join('');
 }
-function statCardsHtml(a) {
+function statCardsHtml(a, ins) {
   const card = (num, lbl, sub) => `<div class="stat"><div class="num">${num}</div><div class="lbl">${lbl}</div>${sub ? `<div class="lbl" style="margin-top:4px;opacity:.7">${sub}</div>` : ''}</div>`;
   return card(a.konwersje ?? 0, 'Konwersje')
     + card(a.responded ?? 0, 'Rozpoczęte', 'lead odpisał')
     + card((a.convFromResponded ?? 0) + '%', 'Konwersja', 'z rozpoczętych')
     + card(a.kontakty ?? 0, 'Kontakty')
-    + card(a.obserwujacy ?? 'b/d', 'Obserwujący', 'wymaga IG')
-    + card(a.wizyty ?? 'b/d', 'Wizyty profilu', 'wymaga IG');
+    + card(ins && ins.followers != null ? fmtNum(ins.followers) : (a.obserwujacy ?? 'b/d'), 'Obserwujący', ins ? 'na koncie' : 'wymaga IG')
+    + card(ins && ins.profileViews != null ? fmtNum(ins.profileViews) : (a.wizyty ?? 'b/d'), 'Wizyty profilu', ins ? 'ost. 30 dni' : 'wymaga IG');
 }
 function chartHtml(series) {
   if (!series || !series.length) return '';
@@ -492,6 +495,10 @@ const SPARK_PATHS = [
 ];
 const IG_METRICS = [['Obserwujący', '#3ecf8e'], ['Zasięg', '#22d3ee'], ['Wyświetlenia', '#8b7bff'], ['Wizyty profilu', '#ff9d4d'], ['Interakcje', '#ff6b9d'], ['Polubienia', '#ff5b7a'], ['Komentarze', '#5b9dff'], ['Udostępnienia', '#8b7bff'], ['Zapisane', '#3ecf8e'], ['Odpowiedzi na story', '#ff9d4d'], ['Kliknięcia WWW', '#2dd4bf'], ['Zaangażowani', '#a78bfa']];
 const OV = ['Zasięg', 'Wyświetlenia', 'Zaangażowani', 'Polubienia', 'Komentarze', 'Udostępnienia', 'Zapisane', 'Odpowiedzi', 'Reposty', 'Interakcje', 'Wizyty profilu', 'Kliknięcia WWW'];
+// Klucze z /api/instagram/insights w kolejności kafelków IG_METRICS oraz kafelków OV
+const IG_KEYS = ['followers', 'reach', 'impressions', 'profileViews', 'totalInteractions', 'likes', 'comments', 'shares', 'saved', 'replies', 'websiteClicks', 'accountsEngaged'];
+const OV_KEYS = ['reach', 'impressions', 'accountsEngaged', 'likes', 'comments', 'shares', 'saved', 'replies', null, 'totalInteractions', 'profileViews', 'websiteClicks'];
+function fmtNum(n) { return (n == null) ? 'b/d' : Number(n).toLocaleString('pl-PL'); }
 function spark(color, i) {
   const p = SPARK_PATHS[i % SPARK_PATHS.length];
   return `<svg class="spark" viewBox="0 0 100 48" preserveAspectRatio="none"><path class="line" d="${p}" style="stroke:${color};filter:drop-shadow(0 0 6px ${color}88)"/></svg>`;
@@ -501,11 +508,14 @@ function mcard(label, value, color, i, sub) {
 }
 async function loadPanel() {
   const a = await api('/analytics');
+  let ins = null;
+  try { ins = await api('/instagram/insights'); } catch {}
+  const igOn = !!(ins && ins.connected);
   if ($('#pnlMetrics')) $('#pnlMetrics').innerHTML =
     mcard('Konwersje', a.konwersje ?? 0, '#3ecf8e', 0)
     + mcard('Kontakty', a.kontakty ?? 0, '#22d3ee', 1)
-    + mcard('Obserwujący', 'b/d', '#8b7bff', 2, 'wymaga IG')
-    + mcard('Wizyty profilu', 'b/d', '#ff9d4d', 3, 'wymaga IG');
+    + mcard('Obserwujący', igOn ? fmtNum(ins.followers) : 'b/d', '#8b7bff', 2, igOn ? 'na koncie' : 'wymaga IG')
+    + mcard('Wizyty profilu', igOn ? fmtNum(ins.profileViews) : 'b/d', '#ff9d4d', 3, igOn ? 'ost. 30 dni' : 'wymaga IG');
   const conv = a.convFromResponded ?? a.conversion ?? 0;
   if ($('#pnlGauge')) $('#pnlGauge').style.setProperty('--g', Math.min(360, Math.round((conv / 100) * 360)) + 'deg');
   if ($('#pnlGaugeN')) $('#pnlGaugeN').textContent = a.konwersje ?? 0;
