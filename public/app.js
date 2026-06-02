@@ -23,6 +23,7 @@ function showView(view) {
   if (view === 'analityka') loadAnalytics();
   if (view === 'crm') loadCrm();
   if (view === 'ab') loadAb();
+  if (view === 'automatyzacje') loadFlows();
 }
 $$('.nav-item[data-view], .nav-subitem[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
 $$('.nav-parent[data-toggle]').forEach(b => b.addEventListener('click', () => {
@@ -307,6 +308,57 @@ function collectAb() {
   });
 }
 async function saveAb() { collectAb(); const r = await api('/ab', { method: 'POST', body: { ab: abData.ab } }); if (r.stats) abData.stats = r.stats; renderAb(); }
+
+// ---------- Automatyzacje (flows) ----------
+let flowsData = null;
+const NODE_TYPES = { welcome: '💬 Wiadomość powitalna', followers_check: '✅ Sprawdź obserwację', lead_magnet: '🎁 Wyślij lead magnet', delay: '⏲️ Opóźnienie', followup: '🔁 Follow-up', send_dm: '✉️ Wyślij DM' };
+async function loadFlows() { flowsData = (await api('/flows')).flows || []; renderFlows(); }
+function defaultNode(t) { if (t === 'welcome') return { type: t, message: '', button: 'CHCĘ TO' }; if (t === 'followers_check') return { type: t, ifNot: '' }; if (t === 'lead_magnet') return { type: t, resource: '' }; if (t === 'delay') return { type: t, hours: 2 }; return { type: t, message: '' }; }
+function nodeHtml(n, fi, ni) {
+  let body;
+  if (n.type === 'welcome') body = `<textarea class="nd" data-fi="${fi}" data-ni="${ni}" data-f="message" rows="2" placeholder="wiadomość">${esc(n.message || '')}</textarea><input type="text" class="nd" data-fi="${fi}" data-ni="${ni}" data-f="button" placeholder="napis na przycisku" value="${esc(n.button || '')}"/>`;
+  else if (n.type === 'followers_check') body = `<input type="text" class="nd" data-fi="${fi}" data-ni="${ni}" data-f="ifNot" placeholder="wiadomość gdy NIE obserwuje" value="${esc(n.ifNot || '')}"/>`;
+  else if (n.type === 'lead_magnet') body = `<input type="text" class="nd" data-fi="${fi}" data-ni="${ni}" data-f="resource" placeholder="nazwa lead magnetu" value="${esc(n.resource || '')}"/>`;
+  else if (n.type === 'delay') body = `<input type="number" class="nd" data-fi="${fi}" data-ni="${ni}" data-f="hours" value="${n.hours || 0}" style="max-width:110px"/> <span class="muted small">godzin</span>`;
+  else body = `<textarea class="nd" data-fi="${fi}" data-ni="${ni}" data-f="message" rows="2" placeholder="treść">${esc(n.message || '')}</textarea>`;
+  return `<div class="flow-node" style="text-align:left;min-width:auto;max-width:520px"><div class="row" style="margin:0 0 5px"><b>${NODE_TYPES[n.type] || n.type}</b><button class="btn danger sm" data-nddel="${fi}:${ni}" style="margin-left:auto">×</button></div>${body}</div>`;
+}
+function flowCardHtml(f, fi) {
+  const nodes = (f.nodes || []).map((n, ni) => nodeHtml(n, fi, ni)).join('<div style="color:var(--muted);margin:2px 0 2px 14px">↓</div>');
+  return `<div class="card">
+    <div class="row"><input type="text" class="fl-name" data-fi="${fi}" value="${esc(f.name || '')}" style="font-weight:600;max-width:340px"/>
+      <label class="radio"><input type="checkbox" class="fl-active" data-fi="${fi}" ${f.active ? 'checked' : ''}/> aktywny</label>
+      <button class="btn sm" data-flexport="${fi}">Export</button>
+      <button class="btn danger sm" data-fldel="${fi}">usuń flow</button></div>
+    <div class="row"><span class="muted small">trigger</span>
+      <select class="fl-trig" data-fi="${fi}"><option value="comment" ${f.trigger.type === 'comment' ? 'selected' : ''}>Komentarz pod postem</option><option value="dm_keyword" ${f.trigger.type === 'dm_keyword' ? 'selected' : ''}>Słowo kluczowe w DM</option></select>
+      <input type="text" class="fl-kw" data-fi="${fi}" placeholder="słowo kluczowe (puste = wszystkie)" value="${esc(f.trigger.keyword || '')}" style="max-width:240px"/></div>
+    <div style="margin:12px 0">${nodes}</div>
+    <div class="row"><select class="fl-addtype" data-fi="${fi}">${Object.entries(NODE_TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select><button class="btn sm" data-fladd="${fi}">+ dodaj krok</button></div>
+  </div>`;
+}
+function renderFlows() {
+  $('#flowsBody').innerHTML = (flowsData && flowsData.length) ? flowsData.map((f, fi) => flowCardHtml(f, fi)).join('') : '<p class="muted">Brak flow. Kliknij „Nowy flow".</p>';
+  $$('#flowsBody [data-fldel]').forEach(b => b.addEventListener('click', () => { collectFlows(); flowsData.splice(+b.dataset.fldel, 1); saveFlows(); }));
+  $$('#flowsBody [data-fladd]').forEach(b => b.addEventListener('click', () => { collectFlows(); const fi = +b.dataset.fladd; const t = $(`#flowsBody .fl-addtype[data-fi="${fi}"]`).value; flowsData[fi].nodes.push(defaultNode(t)); saveFlows(); }));
+  $$('#flowsBody [data-nddel]').forEach(b => b.addEventListener('click', () => { collectFlows(); const [fi, ni] = b.dataset.nddel.split(':').map(Number); flowsData[fi].nodes.splice(ni, 1); saveFlows(); }));
+  $$('#flowsBody [data-flexport]').forEach(b => b.addEventListener('click', () => { collectFlows(); exportFlow(flowsData[+b.dataset.flexport]); }));
+  $$('#flowsBody .fl-name, #flowsBody .fl-active, #flowsBody .fl-trig, #flowsBody .fl-kw, #flowsBody .nd').forEach(el => el.addEventListener('change', saveFlows));
+}
+function collectFlows() {
+  if (!flowsData) return;
+  flowsData.forEach((f, fi) => {
+    const nm = $(`#flowsBody .fl-name[data-fi="${fi}"]`); if (nm) f.name = nm.value;
+    const ac = $(`#flowsBody .fl-active[data-fi="${fi}"]`); if (ac) f.active = ac.checked;
+    const tt = $(`#flowsBody .fl-trig[data-fi="${fi}"]`); if (tt) f.trigger.type = tt.value;
+    const kw = $(`#flowsBody .fl-kw[data-fi="${fi}"]`); if (kw) f.trigger.keyword = kw.value;
+    (f.nodes || []).forEach((n, ni) => { $$(`#flowsBody .nd[data-fi="${fi}"][data-ni="${ni}"]`).forEach(el => { n[el.dataset.f] = el.type === 'number' ? (parseInt(el.value) || 0) : el.value; }); });
+  });
+}
+async function saveFlows() { collectFlows(); await api('/flows', { method: 'POST', body: { flows: flowsData } }); renderFlows(); }
+function exportFlow(f) { const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (f.name || 'flow') + '.json'; a.click(); }
+$('#newFlow').addEventListener('click', () => { if (!flowsData) flowsData = []; else collectFlows(); flowsData.push({ id: 'f' + Date.now(), name: 'Nowy flow', active: false, trigger: { type: 'comment', keyword: '' }, nodes: [defaultNode('welcome')] }); saveFlows(); });
+$('#importFlow').addEventListener('click', () => { const t = prompt('Wklej JSON flow:'); if (!t) return; try { const f = JSON.parse(t); if (!flowsData) flowsData = []; flowsData.push(f); saveFlows(); } catch (e) { alert('Niepoprawny JSON'); } });
 
 // ---------- init ----------
 loadSettings().then(loadPanel).catch(e => { $('#statusText').textContent = 'błąd: ' + e.message; });

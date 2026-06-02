@@ -123,6 +123,16 @@ app.post('/api/ab', (req, res) => {
   if (req.body && req.body.ab) store.updateSettings({ config: { ab: req.body.ab } });
   res.json({ ok: true, stats: store.abStats() });
 });
+
+// ---- AUTOMATYZACJE (flows) ----
+app.get('/api/flows', (req, res) => {
+  const s = store.getSettings();
+  res.json({ flows: (s.config && s.config.flows) || [] });
+});
+app.post('/api/flows', (req, res) => {
+  store.updateSettings({ config: { flows: Array.isArray(req.body.flows) ? req.body.flows : [] } });
+  res.json({ ok: true });
+});
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // ---- WEBHOOK INSTAGRAM ----

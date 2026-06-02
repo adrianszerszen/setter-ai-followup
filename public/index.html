@@ -166,17 +166,9 @@
     <!-- AUTOMATYZACJE (scaffold) -->
     <section class="view" id="view-automatyzacje">
       <h1 class="page-title">Automatyzacje</h1>
-      <p class="page-sub">Wizualne ścieżki: komentarz/wiadomość → warunki → lead magnet → follow-upy.</p>
-      <div class="flow">
-        <div class="flow-node"><div>Welcome Button</div><div class="nt">start</div></div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-node"><div>Followers Check</div><div class="nt">warunek</div></div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-node"><div>Lead Magnet</div><div class="nt">wyślij zasób</div></div>
-        <span class="flow-arrow">→</span>
-        <div class="flow-node"><div>Follow-up</div><div class="nt">po 2h / 4h</div></div>
-      </div>
-      <div class="warn">🚧 Edytor przepływów (przeciąganie węzłów) jest w budowie — to najbardziej złożony moduł, robimy go na końcu. Powyżej podgląd docelowej ścieżki.</div>
+      <p class="page-sub">Ścieżki: trigger (komentarz/słowo) → welcome → sprawdzenie obserwacji → lead magnet → follow-up. Edytuj kroki, Import/Export jako JSON. (Wykonują się na żywo po podłączeniu Instagrama.)</p>
+      <div class="row"><button id="newFlow" class="btn primary sm">+ Nowy flow</button><button id="importFlow" class="btn sm">Import JSON</button></div>
+      <div id="flowsBody"></div>
     </section>
 
     <!-- ZIMNY ZASIĘG -->

@@ -89,6 +89,19 @@ function defaultSettings() {
         ] },
         minSample: 200,
       },
+      flows: [
+        {
+          id: 'f1', name: 'Pozyskiwanie obserwujących + Lead Magnet', active: false,
+          trigger: { type: 'comment', keyword: '' },
+          nodes: [
+            { type: 'welcome', message: 'hej! kliknij przycisk, żeby dostać materiał. pamiętaj że musisz mnie obserwować 🙂', button: 'CHCĘ TO' },
+            { type: 'followers_check', ifNot: 'zaobserwuj mnie proszę, żeby dostać materiał, i kliknij ponownie' },
+            { type: 'lead_magnet', resource: 'Darmowy przewodnik: Jak zapełnić grafik gabinetu w 30 dni' },
+            { type: 'delay', hours: 2 },
+            { type: 'followup', message: 'hej, zdążyłaś zerknąć na materiał? jakby co jestem tu' },
+          ],
+        },
+      ],
     },
   };
 }
