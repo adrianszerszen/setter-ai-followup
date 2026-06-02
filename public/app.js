@@ -22,6 +22,7 @@ function showView(view) {
   if (view === 'rozmowy') loadConversations();
   if (view === 'analityka') loadAnalytics();
   if (view === 'crm') loadCrm();
+  if (view === 'konto') loadKonto();
   if (view === 'ab') loadAb();
   if (view === 'automatyzacje') loadFlows();
   if (view === 'testchat') loadLive();
@@ -81,7 +82,9 @@ async function loadSettings() {
   $('#model').value = settings.model || ''; $('#maxTokens').value = settings.maxTokens || 320; $('#bookingLink').value = settings.bookingLink || '';
   $('#keyState').textContent = settings.apiKeySet ? '· zapisany ✓ (wpisz nowy, by zmienić)' : '· brak';
   const qh = c.quietHours || {}; $('#qhEnabled').checked = !!qh.enabled; $('#qhStart').value = qh.start || '23:30'; $('#qhEnd').value = qh.end || '06:30';
-  $('#skipBig').checked = !!c.skipBigAccounts;
+  const rt = c.responseTime || {}; $('#rtMin').value = rt.min ?? 10; $('#rtMax').value = rt.max ?? 175; updateRtLabels(); updateQhDial();
+  const fl = c.followersLimit || {}; $('#flEnabled').checked = (fl.enabled !== undefined ? !!fl.enabled : !!c.skipBigAccounts); $('#flValue').value = fl.value || 10000; updateFlLabel();
+  blacklist = (c.blacklist || []).slice(); renderBlacklist();
   // Konfiguracja
   renderProducts(c.products || []); $('#currency').value = c.currency || 'PLN';
   // Instagram
@@ -182,7 +185,7 @@ $('#saveRecovery').addEventListener('click', async () => {
 function renderProducts(list) {
   $('#prodList').innerHTML = (list && list.length) ? list.map((p, idx) => `
     <div class="list-item"><div><b>${esc(p.name)}</b> · ${esc(String(p.price))}</div><button class="btn danger sm" data-pdel="${idx}">usuń</button></div>`).join('')
-    : '<p class="muted">Brak produktów.</p>';
+    : '<div class="empty-state"><div class="es-ico">📦</div><div>Brak produktów</div><div class="es-act">Utwórz swój pierwszy produkt poniżej</div></div>';
   $$('#prodList [data-pdel]').forEach(b => b.addEventListener('click', () => {
     const arr = (settings.config.products || []).slice(); arr.splice(parseInt(b.dataset.pdel), 1);
     settings.config.products = arr; renderProducts(arr);
@@ -204,11 +207,58 @@ $('#saveSettings').addEventListener('click', async () => {
   const body = {
     provider: $$('input[name=provider]').find(r => r.checked)?.value || 'anthropic',
     model: $('#model').value.trim(), maxTokens: parseInt($('#maxTokens').value) || 320, bookingLink: $('#bookingLink').value.trim(),
-    config: { quietHours: { enabled: $('#qhEnabled').checked, start: $('#qhStart').value, end: $('#qhEnd').value }, skipBigAccounts: $('#skipBig').checked },
+    config: {
+      quietHours: { enabled: $('#qhEnabled').checked, start: $('#qhStart').value, end: $('#qhEnd').value },
+      responseTime: { min: parseInt($('#rtMin').value) || 0, max: parseInt($('#rtMax').value) || 0 },
+      skipBigAccounts: $('#flEnabled').checked,
+      followersLimit: { enabled: $('#flEnabled').checked, value: parseInt($('#flValue').value) || 10000 },
+      blacklist,
+    },
   };
   const key = $('#apiKey').value.trim(); if (key) body.apiKey = key;
   await api('/settings', { method: 'POST', body }); $('#apiKey').value = ''; flash('#setSaved'); await loadSettings();
 });
+
+// ---------- Ustawienia: czasy, godziny ciszy, czarna lista, limit obserwujących ----------
+let blacklist = [];
+function updateRtLabels() { if ($('#rtMinL')) $('#rtMinL').textContent = $('#rtMin').value || '0'; if ($('#rtMaxL')) $('#rtMaxL').textContent = $('#rtMax').value || '0'; }
+function updateFlLabel() { if ($('#flValLabel')) $('#flValLabel').textContent = (+($('#flValue').value) || 0).toLocaleString('pl-PL'); }
+function updateQhDial() {
+  const d = $('#qhDial'); if (!d) return;
+  const toMin = t => { const [a, b] = (t || '0:0').split(':').map(Number); return a * 60 + (b || 0); };
+  const s = toMin($('#qhStart').value || '23:30'), e = toMin($('#qhEnd').value || '06:30');
+  const dur = (e - s + 1440) % 1440;
+  const h = Math.round(dur / 60 * 10) / 10;
+  if ($('#qhHours')) $('#qhHours').textContent = h + 'h';
+  d.style.setProperty('--qh-deg', (dur / 1440 * 360) + 'deg');
+}
+function renderBlacklist() {
+  const el = $('#blList'); if (!el) return;
+  el.innerHTML = blacklist.length
+    ? '<div class="list" style="margin-top:8px">' + blacklist.map((u, i) => `<div class="list-item"><div><b>${esc(u)}</b></div><button class="btn danger sm" data-bldel="${i}">usuń</button></div>`).join('') + '</div>'
+    : '<div class="bl-empty">🚫 Nie dodano jeszcze żadnych użytkowników</div>';
+  $$('#blList [data-bldel]').forEach(b => b.addEventListener('click', () => { blacklist.splice(+b.dataset.bldel, 1); renderBlacklist(); }));
+}
+if ($('#addBl')) $('#addBl').addEventListener('click', () => { const v = $('#blInput').value.trim().replace(/^@/, ''); if (!v) return; blacklist.push('@' + v); $('#blInput').value = ''; renderBlacklist(); });
+$$('#rtMin, #rtMax').forEach(el => el.addEventListener('input', updateRtLabels));
+$$('#qhStart, #qhEnd').forEach(el => el.addEventListener('input', updateQhDial));
+if ($('#flValue')) $('#flValue').addEventListener('input', updateFlLabel);
+
+// ---------- AI Helper + dzwonek ----------
+if ($('#aiHelperBtn')) $('#aiHelperBtn').addEventListener('click', () => { const o = $('#tutorialOverlay'); if (o) o.classList.remove('hidden'); });
+if ($('#bellBtn')) $('#bellBtn').addEventListener('click', () => alert('Brak nowych powiadomień 🙂'));
+
+// ---------- Ustawienia Konta ----------
+async function loadKonto() {
+  try {
+    const a = await api('/analytics'); const used = a.aiRequests || 0; const lim = 10000;
+    if ($('#kontoReq')) $('#kontoReq').textContent = used.toLocaleString('pl-PL') + ' / ' + lim.toLocaleString('pl-PL');
+    const pct = Math.min(100, Math.round(used / lim * 100));
+    if ($('#kontoReqFill')) $('#kontoReqFill').style.width = pct + '%';
+    if ($('#kontoReqPct')) $('#kontoReqPct').textContent = pct + '% miesięcznego limitu';
+  } catch {}
+  if (settings) { if ($('#kontoModel')) $('#kontoModel').textContent = settings.model || '—'; if ($('#kontoProv')) $('#kontoProv').textContent = settings.provider || '—'; }
+}
 
 // ---------- instagram ----------
 $('#igGenToken').addEventListener('click', () => { $('#igVerifyToken').value = 'followup-' + Math.random().toString(36).slice(2, 10); });
@@ -309,16 +359,31 @@ async function loadConversations() {
 
 // ---------- CRM ----------
 async function loadCrm() {
-  const list = await api('/conversations'); const order = ['goracy', 'skonwertowany', 'cieply', 'zimny', 'semi_dq', 'dq'];
-  const groups = {}; order.forEach(s => groups[s] = []);
-  list.forEach(c => { (groups[c.stage] || (groups[c.stage] = [])).push(c); });
-  let html = '';
-  for (const s of order) { const g = groups[s]; if (!g.length) continue;
-    html += `<h3><span class="badge ${s}">${STAGE_LABEL[s] || s}</span> · ${g.length}</h3><div class="list">` +
-      g.map(c => `<div class="list-item" data-id="${c.id}"><div><b>${esc(c.username)}</b><div class="li-last">${esc(c.last)}</div></div><span class="muted small">${c.count} wiad.</span></div>`).join('') + '</div>';
-  }
-  $('#crmBody').innerHTML = html || '<p class="muted">Brak kontaktów. Pojawią się tu po rozmowach.</p>';
-  $$('#crmBody .list-item').forEach(it => it.addEventListener('click', async () => { const conv = await api('/conversations/' + it.dataset.id); currentConvId = conv.id; showView('testchat'); renderChat(conv); }));
+  const list = await api('/conversations');
+  const up = list.filter(c => c.booked || c.stage === 'skonwertowany');
+  const nostat = list.filter(c => !c.booked && c.stage !== 'skonwertowany' && c.stage !== 'dq' && c.stage !== 'semi_dq');
+  const hist = list.filter(c => !c.booked && (c.stage === 'dq' || c.stage === 'semi_dq'));
+  $('#crmBody').innerHTML =
+    crmSection('up', 'Nadchodzące rozmowy', up) +
+    crmSection('nostat', 'Leady bez statusu', nostat) +
+    crmSection('hist', 'Historia rozmów', hist);
+  $$('#crmBody tbody tr[data-id]').forEach(tr => tr.addEventListener('click', async () => { const conv = await api('/conversations/' + tr.dataset.id); currentConvId = conv.id; showView('testchat'); renderChat(conv); }));
+}
+function crmSection(cls, title, rows) {
+  const cols = ['Instagram', 'Data', 'E-mail', 'Telefon', 'Link do rozmowy', 'Notatki', 'Produkt', 'Wartość', 'Status'];
+  const head = `<div class="crm-sec ${cls}"><div class="crm-head">${esc(title)} <span class="cnt">(${rows.length})</span></div><div class="crm-tbl">`;
+  if (!rows.length) return head + `<div class="crm-empty">Brak pozycji</div></div></div>`;
+  const body = `<table><thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>` +
+    rows.map(c => `<tr data-id="${c.id}">
+      <td><b>@${esc(c.username)}</b></td>
+      <td>${c.createdAt ? new Date(c.createdAt).toLocaleDateString('pl-PL') : '—'}</td>
+      <td class="muted">—</td><td class="muted">—</td>
+      <td>${c.booked ? 'followupagencja.com' : '<span class="muted">—</span>'}</td>
+      <td class="muted">${esc((c.last || '').slice(0, 40))}</td>
+      <td class="muted">—</td><td class="muted">—</td>
+      <td><span class="badge ${c.stage}">${STAGE_LABEL[c.stage] || c.stage}</span></td>
+    </tr>`).join('') + '</tbody></table>';
+  return head + body + '</div></div>';
 }
 
 // ---------- analytics + panel ----------

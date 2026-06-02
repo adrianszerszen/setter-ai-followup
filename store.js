@@ -73,7 +73,10 @@ function defaultSettings() {
     },
     config: {
       quietHours: { enabled: true, start: '23:30', end: '06:30' },
+      responseTime: { min: 10, max: 175 },
       skipBigAccounts: true,
+      followersLimit: { enabled: false, value: 10000 },
+      blacklist: [],
       commentToDm: { keyword: 'oferta', dm: 'jesteś? widziałem twój komentarz 🙂', replyToComment: true, publicReply: 'dzięki, zerknij na dm 🙂' },
       recovery: { enabled: false, dailyMin: 5, dailyMax: 15, messages: ['jesteś?', 'wracam, bo coś mi chodziło po głowie odnośnie twojego gabinetu', 'hej, robimy niedługo darmowy webinar o pozyskiwaniu klientek, wpadniesz?'] },
       coldOutreach: {
@@ -358,6 +361,7 @@ export function analytics() {
   const total = convs.length;
   // "rozpoczęte" rozmowy = lead odpisał (>=2 wiadomości). To metryka, na którą patrzymy wg wideo (nie "wysłane").
   const responded = convs.filter(c => (c.messages || []).length >= 2).length;
+  const aiRequests = convs.reduce((n, c) => n + (c.messages || []).filter(m => m.role === 'assistant').length, 0);
   const now = new Date();
   const fmt = d => String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0');
   const series = [];
@@ -378,7 +382,7 @@ export function analytics() {
     if (avg(head) > avg(tail) * 1.3 && avg(head) > 0) newbiePeak = true;
   }
   return {
-    total, booked, byStage, responded,
+    total, booked, byStage, responded, aiRequests,
     conversion: total ? Math.round((byStage.skonwertowany / total) * 1000) / 10 : 0,
     convFromResponded: responded ? Math.round((byStage.skonwertowany / responded) * 1000) / 10 : 0,
     konwersje: byStage.skonwertowany, kontakty: total, obserwujacy: null, wizyty: null,

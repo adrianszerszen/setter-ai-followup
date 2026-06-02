@@ -12,7 +12,7 @@
 <body>
 <div id="app">
   <aside class="sidebar">
-    <div class="brand"><span class="brand-dot"></span> SETTER AI <small>· FollowUP</small></div>
+    <div class="brand"><span class="brand-dot"></span><div class="brand-tx">SETTER AI<small>FollowUP</small></div></div>
     <nav>
       <button class="nav-item active" data-view="panel">📊 Panel</button>
       <button class="nav-item" data-view="rozmowy">🗂️ Rozmowy</button>
@@ -38,14 +38,15 @@
       <button class="nav-item" data-view="crm">📇 CRM</button>
       <button class="nav-item" data-view="konfiguracja">🛒 Konfiguracja</button>
     </nav>
-    <div class="sidebar-foot">
-      <span id="statusDot" class="status-dot off"></span>
-      <span id="statusText">sprawdzam…</span>
+    <div class="account-box">
+      <button class="acct-row" data-go="konto"><span class="acct-av">AD</span><span class="acct-name">@adrian.szerszen</span><span class="acct-ai">AI ON</span></button>
+      <div class="acct-foot"><span id="statusDot" class="status-dot off"></span><span id="statusText">sprawdzam…</span></div>
     </div>
   </aside>
 
   <main class="content">
     <div id="keyBanner" class="banner hidden">⚠️ Brak klucza API. Wejdź w <b>Ustawienia Setter AI</b> i wklej klucz, żeby setter zaczął odpowiadać.</div>
+    <div class="topbar"><div class="topbar-sp"></div><button class="ai-helper" id="aiHelperBtn">✨ AI Helper</button><button class="bell" id="bellBtn" title="powiadomienia">🔔</button></div>
 
     <!-- PANEL -->
     <section class="view active" id="view-panel">
@@ -535,14 +536,40 @@
         <label class="fld">Maks. długość odpowiedzi (tokeny)</label><input type="number" id="maxTokens" min="60" max="1000" />
         <label class="fld">Link do rezerwacji</label><input type="text" id="bookingLink" />
       </div>
-      <div class="card">
-        <div class="card-title">Ciche godziny i bezpieczeństwo</div>
-        <label class="radio"><input type="checkbox" id="qhEnabled" /> &nbsp;Włącz ciche godziny (setter nie pisze w tym czasie)</label>
-        <div class="row" style="gap:16px">
-          <div><label class="fld">Start</label><input type="time" id="qhStart" /></div>
-          <div><label class="fld">Koniec</label><input type="time" id="qhEnd" /></div>
+      <div class="settings-2col">
+        <div class="card">
+          <div class="card-title">Czasy odpowiedzi</div>
+          <div class="picker-row">
+            <div class="picker"><span class="pk-lbl">Minimum</span><div class="pk-box"><input type="number" id="rtMin" min="0" max="600" /></div><span class="pk-unit">sek</span></div>
+            <div class="picker"><span class="pk-lbl">Maksimum</span><div class="pk-box"><input type="number" id="rtMax" min="0" max="600" /></div><span class="pk-unit">sek</span></div>
+          </div>
+          <p class="muted small" style="text-align:center">Setter czeka losowy czas w tym zakresie przed odpowiedzią, brzmi bardziej naturalnie. <b><span id="rtMinL">10</span>, <span id="rtMaxL">175</span></b> sekund</p>
         </div>
-        <label class="radio"><input type="checkbox" id="skipBig" /> &nbsp;Pomijaj konta z bardzo dużą liczbą obserwujących</label>
+        <div class="card">
+          <div class="setrow"><div class="card-title">Godziny ciszy</div><label class="switch"><input type="checkbox" id="qhEnabled" /><span class="sl"></span></label></div>
+          <div class="qh-wrap">
+            <div class="qh-times">
+              <div class="qh-t"><div class="qh-cap">Początek</div><input type="time" id="qhStart" class="qh-val-in" /></div>
+              <div class="qh-t"><div class="qh-cap">Koniec</div><input type="time" id="qhEnd" class="qh-val-in" /></div>
+            </div>
+            <div class="qh-dial" id="qhDial"><div class="qh-h" id="qhHours">7h</div></div>
+            <p class="muted small" style="text-align:center">W tym czasie setter nie odpowiada. Odpowiedzi pójdą po zakończeniu godzin ciszy.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Czarna lista</div>
+        <p class="muted small">Te konta nie będą otrzymywać automatycznych odpowiedzi.</p>
+        <div class="row"><input type="text" id="blInput" placeholder="@ wpisz nazwę użytkownika instagram..." /><button id="addBl" class="btn">Dodaj</button></div>
+        <div id="blList"></div>
+      </div>
+      <div class="card">
+        <div class="setrow"><div><div class="card-title">Limit obserwujących</div><p class="muted small" style="margin:0">Pomiń osoby z dużą liczbą obserwujących.</p></div><label class="switch"><input type="checkbox" id="flEnabled" /><span class="sl"></span></label></div>
+        <div class="flim" style="margin-top:12px">
+          <div class="flim-val">👥 <span id="flValLabel">10 000</span></div>
+          <input type="range" id="flValue" min="5000" max="1000000" step="5000" />
+          <div class="scale"><span>5K</span><span>10K</span><span>25K</span><span>50K</span><span>100K</span><span>250K</span><span>500K</span><span>1M</span></div>
+        </div>
       </div>
       <div class="row"><button id="saveSettings" class="btn primary">Zapisz ustawienia</button><span id="setSaved" class="saved hidden">zapisano ✓</span></div>
       <p class="muted small">Klucz API trafia tylko na Twój komputer/serwer i do wybranego dostawcy AI.</p>
@@ -551,7 +578,7 @@
     <!-- CRM -->
     <section class="view" id="view-crm">
       <h1 class="page-title">CRM</h1>
-      <p class="page-sub">Kontakty/leady z rozmów, pogrupowane wg etapu.</p>
+      <p class="page-sub">Zarządzaj leadami i rozmowami sprzedażowymi. Nadchodzące rozmowy, leady bez statusu, historia.</p>
       <div id="crmBody"></div>
     </section>
 
@@ -560,12 +587,12 @@
       <h1 class="page-title">Konfiguracja Sprzedaży</h1>
       <p class="page-sub">Produkty/usługi i waluta, używane, gdy setter mówi o ofercie.</p>
       <div class="card">
-        <div class="card-title">🛒 Produkty</div>
-        <div id="prodList" class="list"></div>
+        <div class="setrow"><div><div class="card-title">📦 Produkty</div><p class="muted small" style="margin:0">Zdefiniuj produkty do przypisywania do transakcji.</p></div></div>
+        <div id="prodList" class="list" style="margin-top:10px"></div>
         <div class="row">
           <input type="text" id="prodName" placeholder="nazwa produktu/usługi" />
           <input type="text" id="prodPrice" placeholder="cena (np. 3000)" style="max-width:160px" />
-          <button id="addProd" class="btn">Dodaj</button>
+          <button id="addProd" class="btn">+ Dodaj Produkt</button>
         </div>
       </div>
       <div class="card">
@@ -573,6 +600,35 @@
         <select id="currency"><option value="PLN">Złoty polski (zł)</option><option value="EUR">Euro (€)</option><option value="USD">Dolar (USD)</option></select>
       </div>
       <div class="row"><button id="saveKonfig" class="btn primary">Zapisz</button><span id="konfigSaved" class="saved hidden">zapisano ✓</span></div>
+    </section>
+
+    <!-- USTAWIENIA KONTA -->
+    <section class="view" id="view-konto">
+      <h1 class="page-title">Ustawienia Konta</h1>
+      <p class="page-sub">Zarządzaj kontem i zużyciem AI.</p>
+      <div class="card">
+        <div class="card-title">Płatności</div>
+        <div class="bill-row" style="margin-top:8px">
+          <div class="bill-ico">💳</div>
+          <div class="bill-main"><div class="bm-1">Rozliczenie wg zużycia</div><div class="bm-2">Płacisz tylko za zużycie modelu na swoim kluczu API. Brak abonamentu 1000 USD jak w Setorze.</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Zapytania AI</div>
+        <p class="muted small">Zużycie AI w tym okresie (odpowiedzi settera).</p>
+        <div class="setrow" style="margin-top:8px"><span class="muted">✨ Użyte żądania</span><b id="kontoReq">0 / 10 000</b></div>
+        <div class="req-bar"><div class="req-fill" id="kontoReqFill" style="width:0%"></div></div>
+        <div class="muted small" id="kontoReqPct">0% miesięcznego limitu</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Model i dostawca</div>
+        <div class="setrow"><span class="muted">Model</span><b id="kontoModel">claude-haiku-4-5</b></div>
+        <div class="setrow" style="margin-top:6px"><span class="muted">Dostawca</span><b id="kontoProv">anthropic</b></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Faktury</div>
+        <p class="muted">Brak faktur. Rozliczasz się bezpośrednio u dostawcy AI (np. Anthropic).</p>
+      </div>
     </section>
   </main>
 </div>

@@ -199,3 +199,92 @@ ul.tight li{margin:4px 0}
 .msg .regen{margin-left:8px;background:transparent;border:0;color:inherit;opacity:.32;cursor:pointer;font-size:13px;padding:0 2px;vertical-align:middle}
 .msg:hover .regen{opacity:.9}
 .msg .regen:hover{transform:scale(1.2)}
+
+/* ===== Odwzorowanie 1:1 ekranów Setora ===== */
+
+/* brand + dolny panel konta w sidebarze */
+.brand-tx{display:flex;flex-direction:column;line-height:1.05}
+.brand-tx small{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:9px;letter-spacing:.6px;margin-top:2px}
+.account-box{margin-top:8px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.acct-row{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;width:100%;color:var(--text);text-align:left}
+.acct-row:hover{background:var(--panel2)}
+.acct-av{width:26px;height:26px;border-radius:7px;background:var(--panel3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none}
+.acct-name{font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.acct-ai{font-size:9px;font-weight:700;color:#5ee08e;border:1px solid oklch(0.4 0.1 150);border-radius:999px;padding:2px 6px;background:oklch(0.3 0.08 150)}
+.acct-foot{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11.5px;padding:2px 4px}
+
+/* topbar: AI Helper + dzwonek */
+.topbar{display:flex;align-items:center;gap:10px;margin:0 0 16px}
+.topbar-sp{flex:1}
+.ai-helper{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--ring);color:var(--text);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 0 0 3px oklch(0.556 0 0 /.12)}
+.ai-helper:hover{background:var(--panel2)}
+.bell{background:var(--panel);border:1px solid var(--line);color:var(--muted);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:14px}
+.bell:hover{color:var(--text)}
+
+/* przełącznik iOS */
+.switch{position:relative;display:inline-block;width:42px;height:24px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.switch .sl{position:absolute;inset:0;background:var(--panel3);border-radius:999px;transition:.18s;cursor:pointer}
+.switch .sl:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.18s}
+.switch input:checked + .sl{background:#3a7bd5}
+.switch input:checked + .sl:before{transform:translateX(18px)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+/* dwie kolumny ustawień */
+.settings-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.settings-2col{grid-template-columns:1fr}}
+
+/* Czasy odpowiedzi (picker) */
+.picker-row{display:flex;align-items:flex-start;justify-content:center;gap:30px;margin:14px 0}
+.picker{display:flex;flex-direction:column;align-items:center}
+.picker .pk-lbl{font-size:10.5px;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.picker .pk-box{border-top:2px solid var(--ring);border-bottom:2px solid var(--ring);background:var(--panel2);border-radius:8px;padding:8px 10px}
+.picker .pk-box input{width:84px;text-align:center;border:0;background:transparent;font-size:26px;font-weight:600;color:var(--text);padding:0}
+.picker .pk-unit{font-size:11px;color:var(--muted);margin-top:6px}
+
+/* Godziny ciszy + tarcza */
+.qh-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px}
+.qh-times{display:flex;gap:44px;justify-content:center}
+.qh-t{text-align:center}
+.qh-cap{font-size:11px;color:var(--blue);margin-bottom:3px}
+.qh-val-in{width:120px;text-align:center;font-size:18px;font-weight:600}
+.qh-dial{width:148px;height:148px;border-radius:50%;background:radial-gradient(closest-side,var(--panel) 63%,transparent 64%),conic-gradient(#3a7bd5 var(--qh-deg,180deg),var(--panel3) 0)}
+.qh-dial{display:flex;align-items:center;justify-content:center}
+.qh-h{font-size:22px;font-weight:700}
+
+/* Limit obserwujących */
+.flim-val{font-size:22px;font-weight:600;display:flex;align-items:center;gap:8px}
+.flim input[type=range]{width:100%;accent-color:#3a7bd5;margin-top:8px}
+.flim .scale{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:4px}
+
+/* czarna lista */
+.bl-empty{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:12.5px;padding:24px;border:1px dashed var(--line);border-radius:12px;margin-top:10px}
+
+/* puste stany */
+.empty-state{display:flex;flex-direction:column;align-items:center;gap:6px;padding:40px 20px;color:var(--muted)}
+.empty-state .es-ico{font-size:34px;opacity:.45}
+.empty-state .es-act{color:var(--blue);cursor:pointer;font-weight:500}
+
+/* CRM kolorowe sekcje + tabele */
+.crm-sec{border:1px solid var(--line);border-radius:14px;margin:14px 0;overflow:hidden;background:var(--panel)}
+.crm-head{display:flex;align-items:center;gap:8px;padding:12px 16px;font-weight:600;font-size:14px}
+.crm-head .cnt{color:inherit;opacity:.7;font-weight:500}
+.crm-sec.up .crm-head{background:oklch(0.27 0.06 150);color:#7fe0a6;border-bottom:1px solid oklch(0.38 0.08 150)}
+.crm-sec.nostat .crm-head{background:oklch(0.29 0.06 75);color:#f0c764;border-bottom:1px solid oklch(0.4 0.08 75)}
+.crm-sec.hist .crm-head{background:oklch(0.27 0.06 250);color:#9ec5ff;border-bottom:1px solid oklch(0.38 0.08 250)}
+.crm-tbl{width:100%;overflow-x:auto}
+.crm-tbl table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:780px}
+.crm-tbl th{text-align:left;color:var(--muted);font-weight:500;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:11px}
+.crm-tbl td{padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.crm-tbl tr{cursor:pointer}
+.crm-tbl tbody tr:hover td{background:var(--panel2)}
+.crm-empty{padding:28px;text-align:center;color:var(--muted);font-size:13px}
+
+/* Ustawienia Konta (billing) */
+.bill-row{display:flex;align-items:center;gap:14px}
+.bill-ico{width:46px;height:46px;border-radius:12px;background:oklch(0.3 0.05 250);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.bill-main{flex:1}
+.bill-main .bm-1{font-size:20px;font-weight:600}
+.bill-main .bm-2{color:var(--muted);font-size:12.5px;margin-top:2px}
+.req-bar{height:8px;background:var(--panel2);border-radius:999px;overflow:hidden;margin:10px 0 4px}
+.req-fill{height:100%;background:linear-gradient(90deg,#3a7bd5,var(--blue))}
