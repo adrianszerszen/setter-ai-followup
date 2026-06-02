@@ -35,7 +35,7 @@ function defaultSettings() {
     apiKey: '',
     model: 'claude-sonnet-4-6',
     maxTokens: 320,
-    bookingLink: 'followupagencja.com',
+    bookingLink: 'https://followupagencja.com/',
     instructions: readDefaultInstructions(),
     openers: [
       'jesteś?',
